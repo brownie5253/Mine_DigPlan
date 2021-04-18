@@ -330,7 +330,6 @@ class Mine(search.Problem):
                         
                 
             return self.underground[loc[0], loc[1],:]
-        
     
     @staticmethod   
     def plot_state(state):
