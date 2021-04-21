@@ -7,8 +7,8 @@ Created on Wed Feb  3 17:56:47 2021
 
 # =============================================================================
 #                                  CHANGELOG:
-#   - Fixed Mine class, input arrays will be formatted as (x,z) for 2D and 
-#     (x,y,z) for 3D. - Ethan
+#   - Fixed Mine class, input arrays will be formatted as (x, z) for 2D and 
+#     (x, y, z) for 3D. - Ethan
 #   - States are now correctly working, e.g. doing state(action) will now find
 #     the correct location in the mine. - Ethan
 #   - Added variable self.three_dim, set to True if mine is 3D - Ethan
@@ -29,17 +29,17 @@ An open-pit mine is a grid represented with a 2D or 3D numpy array.
 
 The first coordinates are surface locations.
 
-In the 2D case, the coordinates are (x,z).
-In the 3D case, the coordinates are (x,y,z).
+In the 2D case, the coordinates are (x, z).
+In the 3D case, the coordinates are (x, y, z).
 The last coordinate 'z' points down.
 
     
 A state indicates for each surface location  how many cells 
 have been dug in this pit column.
 
-For a 3D mine, a surface location is represented with a tuple (x,y).
+For a 3D mine, a surface location is represented with a tuple (x, y).
 
-For a 2D mine, a surface location is represented with a tuple (x,).
+For a 2D mine, a surface location is represented with a tuple (x, ).
 
 
 Two surface cells are neighbours if they share a common border point.
@@ -165,7 +165,7 @@ class Mine(search.Problem):
         Constructor
         
         Initialize the attributes
-        self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z,
+        self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z, 
         self.cumsum_mine, and self.initial
         
         The state self.initial is a filled with zeros.
@@ -187,7 +187,7 @@ class Mine(search.Problem):
         self.underground = underground
         # self.underground  should be considered as a 'read-only' variable!
         self.dig_tolerance = dig_tolerance
-        assert underground.ndim in (2,3)
+        assert underground.ndim in (2, 3)
 
         ####################### Inserting code here! #######################    
 
@@ -198,12 +198,12 @@ class Mine(search.Problem):
             self.three_dim = False
 
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y,x,z) idk y
+        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y, x, z) idk y
 
         # 3D mine case
         if self.three_dim:
             self.len_y = self.underground.shape[0]
-            self.initial = np.zeros((self.len_x,self.len_y), dtype=int)
+            self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
         # 2D mine case            
         else:
             self.len_y = 0
@@ -220,8 +220,8 @@ class Mine(search.Problem):
         Parameters
         ----------
         loc : surface coordinates of a cell.
-            a singleton (x,) in case of a 2D mine
-            a pair (x,y) in case of a 3D mine
+            a singleton (x, ) in case of a 2D mine
+            a pair (x, y) in case of a 3D mine
 
         Returns
         -------
@@ -230,17 +230,17 @@ class Mine(search.Problem):
 
         '''
         L=[]
-        assert len(loc) in (1,2)
+        assert len(loc) in (1, 2)
         if len(loc)==1:
             if loc[0]-1>=0:
-                L.append((loc[0]-1,))
+                L.append((loc[0]-1, ))
             if loc[0]+1<self.len_x:
-                L.append((loc[0]+1,))
+                L.append((loc[0]+1, ))
         else:
             # len(loc) == 2
-            for dx,dy in ((-1,-1),(-1,0),(-1,+1),
-                          (0,-1),(0,+1),
-                          (+1,-1),(+1,0),(+1,+1)):
+            for dx, dy in ((-1, -1), (-1, 0), (-1, +1), 
+                          (0, -1), (0, +1), 
+                          (+1, -1), (+1, 0), (+1, +1)):
                 if  (0 <= loc[0]+dx < self.len_x) and (0 <= loc[1]+dy < self.len_y):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
@@ -269,7 +269,7 @@ class Mine(search.Problem):
 
         # 3D case
         if self.three_dim:
-            state[1,0] = 1 #test is_dangerous
+            state[1, 0] = 1 #test is_dangerous
             state[1, 2] = 1  # test is_dangerous
             state[3, 1] = 1  # test is_dangerous
             state[2, 2] = 1  # test is_dangerous
@@ -290,8 +290,8 @@ class Mine(search.Problem):
         for prod in result:
             action_loc = tuple([prod])
             if self.three_dim:
-                action_loc = ([prod[0]],[prod[1]])
-            if (self.is_dangerous(self.result(state,action_loc)) == False):
+                action_loc = ([prod[0]], [prod[1]])
+            if (self.is_dangerous(self.result(state, action_loc)) == False):
                 yield prod
 
         ####################### Inserting code here! #######################
@@ -319,10 +319,10 @@ class Mine(search.Problem):
         print('Mine of depth {}'.format(self.len_z))
         if self.underground.ndim == 2:
             # 2D mine
-            print('Plane x,z view')
+            print('Plane x, z view')
         else:
             # 3D mine
-            print('Level by level x,y slices')
+            print('Level by level x, y slices')
         #
         print(self.__str__())
 
@@ -334,25 +334,25 @@ class Mine(search.Problem):
             # 3D mine
             # level by level representation
             return '\n'.join('level {}\n'.format(z)
-                   +str(self.underground[...,z]) for z in range(self.len_z))
+                   +str(self.underground[..., z]) for z in range(self.len_z))
 
 
 
-            return self.underground[loc[0], loc[1],:]
+            return self.underground[loc[0], loc[1], :]
 
 
     @staticmethod
     def plot_state(state):
         if state.ndim==1:
             fig, ax = plt.subplots()
-            ax.bar(np.arange(state.shape[0]) ,
+            ax.bar(np.arange(state.shape[0]) , 
                     state
                     )
             ax.set_xlabel('x')
             ax.set_ylabel('z')
         else:
             assert state.ndim==2
-            # bar3d(x, y, z, dx, dy, dz,
+            # bar3d(x, y, z, dx, dy, dz, 
             # fake data
             _x = np.arange(state.shape[0])
             _y = np.arange(state.shape[1])
@@ -361,8 +361,8 @@ class Mine(search.Problem):
             top = state.ravel()
             bottom = np.zeros_like(top)
             width = depth = 1
-            fig = plt.figure(figsize=(3,3))
-            ax1 = fig.add_subplot(111,projection='3d')
+            fig = plt.figure(figsize=(3, 3))
+            ax1 = fig.add_subplot(111, projection='3d')
             ax1.bar3d(x, y, bottom, width, depth, top, shade=True)
             ax1.set_xlabel('x')
             ax1.set_ylabel('y')
@@ -413,13 +413,13 @@ class Mine(search.Problem):
         ####################### Inserting code here! #######################
         # 3D case
         if self.three_dim:
-            xtest = state[:,:-1] - state[:,1:] # x axis
-            ytest = state[:-1,:] - state[1:,:] # y axis
-            dia1test = state[:-1,:-1] - state[1:,1:] # 1st diag axis
-            dia2test = np.rot90(state)[:-1,:-1] - np.rot90(state)[1:,1:] # 2nd diag axis
+            xtest = state[:, :-1] - state[:, 1:] # x axis
+            ytest = state[:-1, :] - state[1:, :] # y axis
+            dia1test = state[:-1, :-1] - state[1:, 1:] # 1st diag axis
+            dia2test = np.rot90(state)[:-1, :-1] - np.rot90(state)[1:, 1:] # 2nd diag axis
 
             # Concatenate all tests and check for unacceptable tolerances
-            return(np.any(abs(np.concatenate((xtest,ytest,dia1test,dia2test),
+            return(np.any(abs(np.concatenate((xtest, ytest, dia1test, dia2test), 
                                              axis=None)) > self.dig_tolerance))
         # 2D case
         else:
@@ -497,14 +497,45 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
+
+    
+
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
-    raise NotImplementedError
+
+    s0 = np.array(s0)
+    s1 = np.array(s1)
+
+    Mine.x_len = len(s0) #temporary for testing
+
+    loc = 0
+    output = []
+    if Mine.three_dim: #if 3d
+        raise NotImplementedError
+    else: #if 2d
+        while not (np.all((s0 == s1))):
+            overallTruTru = np.all((s0 == s1))
+            arrayTruTru = s0 == s1
+            print(s0)
+            for location in range(Mine.x_len):
+                if s0[location] == loc & s0[location] < s1[location]:
+                    output.append((location, ))
+                    s0[location] += 1
+            loc += 1
+            
+
+    return tuple(output)
 
 
+#test states
+Mine.three_dim = False
+s0 = (0, 1, 2, 3, 0)
+s1 = (3, 2, 3, 4, 3)
 
+# Mine.three_dim = True
+# s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
+# s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
 
-
-
+print(find_action_sequence(s0,s1))
 
 
