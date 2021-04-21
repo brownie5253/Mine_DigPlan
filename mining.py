@@ -19,7 +19,7 @@ Created on Wed Feb  3 17:56:47 2021
 # 
 #   - THIS IS ANOTHER COMMENT
 #   - I am confused
-    Big mood
+#   Big mood
 # 
 # =============================================================================
 
@@ -63,13 +63,13 @@ from numbers import Number
 
 import search
 
-def my_team():    
+def my_team():
 
-     '''    Return the list of the team members of this assignment submission 
-     as a list of triplet of the form (student_number, first_name, last_name)        ''' 
+     '''    Return the list of the team members of this assignment submission
+     as a list of triplet of the form (student_number, first_name, last_name)        '''
 
      return [ (10467858, 'Ethan', 'Griffiths'), (10467874, 'Mattias', 'Winsen'), (10486925, 'Connor', 'Browne') ]
-    
+
 def convert_to_tuple(a):
     '''
     Convert the parameter 'a' into a nested tuple of the same shape as 'a'.
@@ -96,8 +96,8 @@ def convert_to_tuple(a):
     else:
         # 'a' must be a nested list with 2 levels (a matrix)
         return tuple(tuple(r) for r in a)
-    
-    
+
+
 def convert_to_list(a):
     '''
     Convert the array-like parameter 'a' into a nested list of the same 
@@ -122,7 +122,7 @@ def convert_to_list(a):
         return list(a)
     else:
         # 'a' must be a nested list with 2 levels (a matrix)
-        return [list(r) for r in a]    
+        return [list(r) for r in a]
 
 
 
@@ -158,8 +158,8 @@ class Mine(search.Problem):
     
     States must be tuple-based.
     
-    '''    
-    
+    '''
+
     def __init__(self, underground, dig_tolerance = 1):
         '''
         Constructor
@@ -183,36 +183,36 @@ class Mine(search.Problem):
 
         '''
         # super().__init__() # call to parent class constructor not needed
-        
-        self.underground = underground 
+
+        self.underground = underground
         # self.underground  should be considered as a 'read-only' variable!
         self.dig_tolerance = dig_tolerance
         assert underground.ndim in (2,3)
-        
+
         ####################### Inserting code here! #######################    
-        
+
         # Determine if mine is 3D or not
         if self.underground.ndim == 3:
             self.three_dim = True
         else:
             self.three_dim = False
-        
+
         self.len_z = self.underground.shape[-1] # -1 axis is always z
         self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y,x,z) idk y
-        
+
         # 3D mine case
         if self.three_dim:
             self.len_y = self.underground.shape[0]
             self.initial = np.zeros((self.len_x,self.len_y), dtype=int)
         # 2D mine case            
         else:
-            self.len_y = 0            
-            self.initial = np.zeros(self.len_x, dtype=int)        
-            
+            self.len_y = 0
+            self.initial = np.zeros(self.len_x, dtype=int)
+
         self.CUMsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
         ####################### Inserting code here! #######################
-        
+
     def surface_neigbhours(self, loc):
         '''
         Return the list of neighbours of loc
@@ -254,8 +254,8 @@ class Mine(search.Problem):
             result = [x + [y] for x in result for y in pool]
         for prod in result:
             yield tuple(prod)
-     
-    
+
+
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
@@ -272,7 +272,7 @@ class Mine(search.Problem):
         -------
         a generator of valid actions
 
-        '''        
+        '''
         state = np.array(state)
 
         ####################### Inserting code here! #######################
@@ -306,8 +306,8 @@ class Mine(search.Problem):
                 yield prod
 
         ####################### Inserting code here! #######################
-        
-                  
+
+
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must a valid actions.
@@ -316,8 +316,8 @@ class Mine(search.Problem):
         new_state = np.array(state) # Make a copy
         new_state[action] += 1
         return convert_to_tuple(new_state)
-                
-    
+
+
     def console_display(self):
         '''
         Display the mine on the console
@@ -336,7 +336,7 @@ class Mine(search.Problem):
             print('Level by level x,y slices')
         #
         print(self.__str__())
-        
+
     def __str__(self):
         if self.underground.ndim == 2:
             # 2D mine
@@ -346,13 +346,13 @@ class Mine(search.Problem):
             # level by level representation
             return '\n'.join('level {}\n'.format(z)
                    +str(self.underground[...,z]) for z in range(self.len_z))
-                    
-                        
-                
+
+
+
             return self.underground[loc[0], loc[1],:]
-        
-    
-    @staticmethod   
+
+
+    @staticmethod
     def plot_state(state):
         if state.ndim==1:
             fig, ax = plt.subplots()
@@ -368,7 +368,7 @@ class Mine(search.Problem):
             _x = np.arange(state.shape[0])
             _y = np.arange(state.shape[1])
             _yy, _xx = np.meshgrid(_y, _x) # cols, rows
-            x, y = _xx.ravel(), _yy.ravel()            
+            x, y = _xx.ravel(), _yy.ravel()
             top = state.ravel()
             bottom = np.zeros_like(top)
             width = depth = 1
@@ -423,7 +423,7 @@ class Mine(search.Problem):
         No loops needed in the implementation!
         '''
         # convert to np.array in order to use numpy operators
-        state = np.array(state)         
+        state = np.array(state)
 
         ####################### Inserting code here! #######################
         # 3D case
@@ -432,7 +432,7 @@ class Mine(search.Problem):
             ytest = state[:-1,:] - state[1:,:] # y axis
             dia1test = state[:-1,:-1] - state[1:,1:] # 1st diag axis
             dia2test = np.rot90(state)[:-1,:-1] - np.rot90(state)[1:,1:] # 2nd diag axis
-            
+
             # Concatenate all tests and check for unacceptable tolerances
             return(np.any(abs(np.concatenate((xtest,ytest,dia1test,dia2test),
                                              axis=None)) > self.dig_tolerance))
@@ -440,16 +440,16 @@ class Mine(search.Problem):
         else:
             # Simply check along the x axis for unacceptable tolerances
             return(np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance))
-        
-        
+
+
         ####################### Inserting code here! #######################   
 
 
-    
+
     # ========================  Class Mine  ==================================
-    
-    
-    
+
+
+
 def search_dp_dig_plan(mine):
     '''
     Search using Dynamic Programming the most profitable sequence of 
@@ -470,8 +470,8 @@ def search_dp_dig_plan(mine):
     raise NotImplementedError
 
 
-    
-    
+
+
 def search_bb_dig_plan(mine):
     '''
     Compute, using Branch and Bound, the most profitable sequence of 
@@ -488,8 +488,8 @@ def search_bb_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
-    
-    
+
+
     raise NotImplementedError
 
 
@@ -511,16 +511,15 @@ def find_action_sequence(s0, s1):
     -------
     A sequence of actions to go from state s0 to state s1
 
-    '''    
+    '''
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
     raise NotImplementedError
-        
-     
-        
-        
-        
-        
-    
-    
-    
+
+
+
+
+
+
+
+
