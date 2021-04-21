@@ -305,7 +305,6 @@ class Mine(search.Problem):
             if (self.is_dangerous(self.result(state,action_loc)) == False):
                 yield prod
 
-`1
         ####################### Inserting code here! #######################
         
                   
