@@ -15,7 +15,7 @@ Created on Wed Feb  3 17:56:47 2021
 #   - Implemented Is_Dangerous function, seems to be working correctly - Ethan
 #   - changed code in init from 0 to -2 for x_len as in 3d mind x is the second index and -2 for 2d mine will index first variable - Connor
 #   - THIS IS A COMMENT 
-# 
+#  - Matti - for git
 # 
 # 
 # 
