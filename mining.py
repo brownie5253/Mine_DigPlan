@@ -14,12 +14,12 @@ Created on Wed Feb  3 17:56:47 2021
 #   - Added variable self.three_dim, set to True if mine is 3D - Ethan
 #   - Implemented Is_Dangerous function, seems to be working correctly - Ethan
 #   - changed code in init from 0 to -2 for x_len as in 3d mind x is the second index and -2 for 2d mine will index first variable - Connor
-#   - undid this above line lol 
 #   - THIS A COMMENT BUT I'VE EDITED IT
 #  - Matti - for git
 # 
 #   - THIS IS ANOTHER COMMENT
 #   - I am confused
+    Big mood
 # 
 # =============================================================================
 
@@ -144,7 +144,7 @@ class Mine(search.Problem):
     
     Other attributes:
         self.len_x, self.len_y, self.len_z : int : underground.shape
-        self.cumsum_mine : float array : cumulative sums of the columns of the 
+        self.CUMsum_mine : float array : CUMulative sums of the columns of the 
                                          mine
     
     A state has the same dimension as the surface of the mine.
@@ -166,7 +166,7 @@ class Mine(search.Problem):
         
         Initialize the attributes
         self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z,
-        self.cumsum_mine, and self.initial
+        self.CUMsum_mine, and self.initial
         
         The state self.initial is a filled with zeros.
 
@@ -198,11 +198,11 @@ class Mine(search.Problem):
             self.three_dim = False
         
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[0] # x is always 0 index
+        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y,x,z) idk y
         
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[1]
+            self.len_y = self.underground.shape[0]
             self.initial = np.zeros((self.len_x,self.len_y), dtype=int)
         # 2D mine case            
         else:
@@ -407,10 +407,10 @@ class Mine(search.Problem):
 
         #2D case
         else:
-            res_arr = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
+            res_arr = self.CUMsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the CUMsum of each loc
 
         check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((res_arr * check))  # add up cumsum values for colums actualy dug in
+        return np.sum((res_arr * check))  # add up CUMsum values for colums actualy dug in
 
 
 
