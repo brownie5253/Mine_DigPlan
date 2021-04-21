@@ -144,7 +144,7 @@ class Mine(search.Problem):
     
     Other attributes:
         self.len_x, self.len_y, self.len_z : int : underground.shape
-        self.cumsum_mine : float array : cumulative sums of the columns of the 
+        self.CUMsum_mine : float array : CUMulative sums of the columns of the 
                                          mine
     
     A state has the same dimension as the surface of the mine.
@@ -166,7 +166,7 @@ class Mine(search.Problem):
         
         Initialize the attributes
         self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z,
-        self.cumsum_mine, and self.initial
+        self.CUMsum_mine, and self.initial
         
         The state self.initial is a filled with zeros.
 
@@ -209,7 +209,7 @@ class Mine(search.Problem):
             self.len_y = 0            
             self.initial = np.zeros(self.len_x, dtype=int)        
             
-        self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)         
+        self.CUMsum_mine = np.CUMsum(self.underground, dtype=float, axis=-1)         
                        
         ##### Old code, just in case #####
         # # 2D mine
@@ -217,10 +217,10 @@ class Mine(search.Problem):
         #     self.len_x = self.underground.shape[0]
         #     self.len_y = 0;
         #     self.len_z = self.underground.shape[1]    
-        #     self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=1) 
+        #     self.CUMsum_mine = np.CUMsum(self.underground, dtype=float, axis=1) 
         # # 3D mine
         # else:
-        #     self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=2) 
+        #     self.CUMsum_mine = np.CUMsum(self.underground, dtype=float, axis=2) 
         #     self.len_x = self.underground.shape[1]
         #     self.len_y = self.underground.shape[0]  
         #     self.len_z = self.underground.shape[2]
@@ -418,14 +418,14 @@ class Mine(search.Problem):
         # 3D case
         if self.three_dim:
             y_Locs = np.arange(self.len_y)
-            res_arr = self.cumsum_mine[y_Locs, x_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            res_arr = self.CUMsum_mine[y_Locs, x_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
-            res_arr = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
+            res_arr = self.CUMsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the CUMsum of each loc
 
         check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((res_arr * check))  # add up cumsum values for colums actualy dug in
+        return np.sum((res_arr * check))  # add up CUMsum values for colums actualy dug in
 
 
 
