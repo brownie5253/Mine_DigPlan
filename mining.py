@@ -14,7 +14,7 @@ Created on Wed Feb  3 17:56:47 2021
 #   - Added variable self.three_dim, set to True if mine is 3D - Ethan
 #   - Implemented Is_Dangerous function, seems to be working correctly - Ethan
 #   - changed code in init from 0 to -2 for x_len as in 3d mind x is the second index and -2 for 2d mine will index first variable - Connor
-#   - THIS IS A COMMENT 
+#   - THIS A COMMENT BUT I'VE EDITED IT
 #  - Matti - for git
 # 
 # 
