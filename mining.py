@@ -473,9 +473,48 @@ def search_bb_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
+    # Best first graph search (for reference)
+    # node = Node(problem.initial)
+    # if problem.goal_test(node.state):
+    #     return node
+    # frontier = PriorityQueue(f=f)
+    # frontier.append(node)
+    # explored = set() # set of states
+    # while frontier:
+    #     node = frontier.pop()
+    #     if problem.goal_test(node.state):
+    #         return node
+    #     explored.add(node.state)
+    #     for child in node.expand(problem):
+    #         if child.state not in explored and child not in frontier:
+    #             frontier.append(child)
+    #         elif child in frontier:
+    #             # frontier[child] is the f value of the 
+    #             # incumbent node that shares the same state as 
+    #             # the node child.  Read implementation of PriorityQueue
+    #             if f(child) < frontier[child]:
+    #                 del frontier[child] # delete the incumbent node
+    #                 frontier.append(child) # 
+    # return None
+    
+    def b(node):
+        pass
+
+    node = search.Node(mine.initial)
+    f = mine.payoff # Payoff is the lower bound of the search, as it is the total payoff of the current state
+    frontier = search.PriorityQueue(max,f=f)
+    frontier.append(node)
+
+    while frontier:
+        node = frontier.pop()
+        # if node.payoff:
+
+    
 
 
-    raise NotImplementedError
+
+
+    
 
 
 
