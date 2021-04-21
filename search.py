@@ -3,7 +3,7 @@
 
     2021 Generic search module for Python 3.5+
         
-This search module is based on the AIMA book. 
+This search module is based on the AIMA book.
 http://aima.cs.berkeley.edu/
 
 Search (Chapters 3-4)
