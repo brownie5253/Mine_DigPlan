@@ -14,6 +14,7 @@ Created on Wed Feb  3 17:56:47 2021
 #   - Added variable self.three_dim, set to True if mine is 3D - Ethan
 #   - Implemented Is_Dangerous function, seems to be working correctly - Ethan
 #   - changed code in init from 0 to -2 for x_len as in 3d mind x is the second index and -2 for 2d mine will index first variable - Connor
+#   - undid this above line lol 
 #   - THIS A COMMENT BUT I'VE EDITED IT
 #  - Matti - for git
 # 
@@ -197,11 +198,11 @@ class Mine(search.Problem):
             self.three_dim = False
         
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y,x,z) idk y
+        self.len_x = self.underground.shape[0] # x is always 0 index
         
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[0]
+            self.len_y = self.underground.shape[1]
             self.initial = np.zeros((self.len_x,self.len_y), dtype=int)
         # 2D mine case            
         else:
@@ -209,22 +210,7 @@ class Mine(search.Problem):
             self.initial = np.zeros(self.len_x, dtype=int)        
             
         self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)         
-                       
-        ##### Old code, just in case #####
-        # # 2D mine
-        # if self.undergound.ndim == 2:
-        #     self.len_x = self.underground.shape[0]
-        #     self.len_y = 0;
-        #     self.len_z = self.underground.shape[1]    
-        #     self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=1) 
-        # # 3D mine
-        # else:
-        #     self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=2) 
-        #     self.len_x = self.underground.shape[1]
-        #     self.len_y = self.underground.shape[0]  
-        #     self.len_z = self.underground.shape[2]
-        ##### Old code #####
-        
+                
         ####################### Inserting code here! #######################
         
     def surface_neigbhours(self, loc):
