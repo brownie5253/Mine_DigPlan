@@ -209,7 +209,7 @@ class Mine(search.Problem):
             self.len_y = 0            
             self.initial = np.zeros(self.len_x, dtype=int)        
             
-        self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)         
+        self.CUMsum_mine = np.CUMsum(self.underground, dtype=float, axis=-1)         
 
         ####################### Inserting code here! #######################
         
@@ -403,7 +403,7 @@ class Mine(search.Problem):
         # 3D case
         if self.three_dim:
             y_Locs = np.arange(self.len_y)
-            res_arr = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            res_arr = self.CUMsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
