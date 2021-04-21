@@ -116,8 +116,11 @@ def test_2D_search_dig_plan():
     mine.console_display()
     print(mine.initial)
     print(mine.surface_neigbhours((2,)))
+    print("Cumsum:")
     print(mine.cumsum_mine)
-    print("actions")
+    print("is_dangerous:")
+    print(mine.is_dangerous(mine.initial))
+    print("Actions:")
     for a in mine.actions(mine.initial):
         print(a)
 
@@ -163,9 +166,11 @@ def test_3D_search_dig_plan():
     print(mine.initial)
     print(mine.initial[3][2])
     print(mine.surface_neigbhours((0,1)))
-    print("cumsum")
+    print("Cumsum:")
     print(mine.cumsum_mine)
-    print("actions")
+    print("is_dangerous:")
+    print(mine.is_dangerous(mine.initial))
+    print("Actions:")
     for a in mine.actions(mine.initial):
         print(a)
 
