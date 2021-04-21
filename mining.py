@@ -68,7 +68,7 @@ def my_team():
      '''    Return the list of the team members of this assignment submission 
      as a list of triplet of the form (student_number, first_name, last_name)        ''' 
 
-     return [ (10467858, 'Ethan', 'Griffiths'), (10467874, 'Mattias', 'Winsen'), (1234567, 'Connor', 'Browne') ]   
+     return [ (10467858, 'Ethan', 'Griffiths'), (10467874, 'Mattias', 'Winsen'), (10486925, 'Connor', 'Browne') ]
     
 def convert_to_tuple(a):
     '''
@@ -209,7 +209,7 @@ class Mine(search.Problem):
             self.len_y = 0            
             self.initial = np.zeros(self.len_x, dtype=int)        
             
-        self.CUMsum_mine = np.CUMsum(self.underground, dtype=float, axis=-1)         
+        self.CUMsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
         ####################### Inserting code here! #######################
         
@@ -280,11 +280,11 @@ class Mine(search.Problem):
 
         # 3D case
         if self.three_dim:
-            '''state[1,0] = 1 #test is_dangerous
+            state[1,0] = 1 #test is_dangerous
             state[1, 2] = 1  # test is_dangerous
             state[3, 1] = 1  # test is_dangerous
             state[2, 2] = 1  # test is_dangerous
-            state[0, 0] = 1  # test is_dangerous'''
+            state[0, 0] = 1  # test is_dangerous
             y_Locs = np.arange(self.len_y)
             args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
             pools = [tuple(pool) for pool in args]
@@ -294,8 +294,8 @@ class Mine(search.Problem):
 
         # 2D case
         else:
-            '''state[1] = 1 #test is_dangerous
-            state[3] = 1  # test is_dangerous'''
+            state[1] = 1 #test is_dangerous
+            state[3] = 1  # test is_dangerous
             result = convert_to_list(x_Locs)
 
         for prod in result:
@@ -305,7 +305,7 @@ class Mine(search.Problem):
             if (self.is_dangerous(self.result(state,action_loc)) == False):
                 yield prod
 
-
+`1
         ####################### Inserting code here! #######################
         
                   
