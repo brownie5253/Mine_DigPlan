@@ -497,19 +497,39 @@ def search_bb_dig_plan(mine):
     #                 frontier.append(child) # 
     # return None
     
-    def b(node):
+    def b(state): # Return upper bound for the state
         pass
 
     node = search.Node(mine.initial)
-    f = mine.payoff # Payoff is the lower bound of the search, as it is the total payoff of the current state
-    frontier = search.PriorityQueue(max,f=f)
+    f = lambda x : mine.payoff(x.state) # Payoff is the lower bound of the search, as it is the total payoff of the current state
+    frontier = search.PriorityQueue('max',f)
     frontier.append(node)
 
     while frontier:
         node = frontier.pop()
-        # if node.payoff:
+        print(node.state)
+        print(f(node))
+        
+        # test goes here
+        for child in node.expand(mine):
+            if child not in frontier:
+                frontier.append(child)
+            else:
+                if f(child) > frontier[child]:
+                    del frontier[child] # delete the incumbent node
+                    frontier.append(child)
 
-    
+
+
+# Debugging:
+# some_2d_underground_1 = np.array([
+#     [-0.814, 0.637, 1.824, -0.563],
+#     [0.559, -0.234, -0.366, 0.07],
+#     [0.175, -0.284, 0.026, -0.316],
+#     [0.212, 0.088, 0.304, 0.604],
+#     [-1.231, 1.558, -0.467, -0.371]])
+# mine = Mine(some_2d_underground_1)
+# search_bb_dig_plan(mine)
 
 
 
