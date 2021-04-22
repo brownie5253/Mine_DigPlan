@@ -198,11 +198,11 @@ class Mine(search.Problem):
             self.three_dim = False
 
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y, x, z) idk y
+        self.len_x = self.underground.shape[0] # 0 axis is always x
 
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[0]
+            self.len_y = self.underground.shape[1]
             self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
         # 2D mine case            
         else:
@@ -266,10 +266,9 @@ class Mine(search.Problem):
         return result
 
     def at_bottom(self, state, action_loc):
-        if(state[action_loc] >= self.len_z):
-            return False
-        else:
-            return True
+        """Check if the state is at the bottom of the mine for the given action.
+        Returns a bool containing the result of this test."""
+        return (state[action_loc] >= self.len_z)
 
 
     def actions(self, state):
@@ -302,11 +301,12 @@ class Mine(search.Problem):
 
         for loc in state_indexs:
             action_loc = tuple([loc])
-            if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
-                yield tuple([loc])
-            #should work but if not try this
-            # if (self.is_dangerous(self.result(state,action_loc)) == False or self.at_bottom(state, action_loc) == False):
+            # if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
             #     yield tuple([loc])
+            #should work but if not try this
+            # Check if the mine will be dangerous or exceed the bottom of the mine with this potential action:
+            if not self.is_dangerous(self.result(state,action_loc)) and not self.at_bottom(state, action_loc):
+                yield tuple([loc])
 
         ####################### Inserting code here! #######################
 
