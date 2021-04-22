@@ -50,6 +50,9 @@ An action is represented by the surface location where the dig takes place.
 
 
 """
+import time
+from functools import lru_cache
+
 import numpy as np
 import matplotlib.pyplot as plt
 # This import registers the 3D projection, but is otherwise unused.
@@ -482,7 +485,6 @@ def search_dp_dig_plan(mine):
     return 1
 
 
-
 def search_bb_dig_plan(mine):
     '''
     Compute, using Branch and Bound, the most profitable sequence of 
@@ -531,10 +533,14 @@ def search_bb_dig_plan(mine):
     frontier = search.PriorityQueue('max',f)
     frontier.append(node)
 
+    # Store best lower bound found
+    best_node = node 
+
     while frontier:
         node = frontier.pop()
-        print(node.state)
-        print(f(node))
+        # Test statements:
+        # print(node.state)
+        # print(f(node))
 
         # test goes here
         for child in node.expand(mine):
@@ -543,9 +549,12 @@ def search_bb_dig_plan(mine):
             else:
                 if f(child) > frontier[child]:
                     del frontier[child] # delete the incumbent node
+                    best_node = child # update best node
                     frontier.append(child)
 
-    
+    return best_node.state, best_node.path
+
+# search_bb_mem = lru_cache(maxsize=20000)(search_bb_dig_plan)  
 
 # Debugging:
 # some_2d_underground_1 = np.array([
@@ -555,9 +564,12 @@ def search_bb_dig_plan(mine):
 #     [0.212, 0.088, 0.304, 0.604],
 #     [-1.231, 1.558, -0.467, -0.371]])
 # mine = Mine(some_2d_underground_1)
+
+# tic = time.time()
+# # search_bb_mem(mine)
 # search_bb_dig_plan(mine)
-
-
+# toc = time.time()
+# print('BB Computation took {} seconds'.format(toc-tic))
 
     
 
