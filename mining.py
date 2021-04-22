@@ -211,8 +211,25 @@ class Mine(search.Problem):
             
         self.CUMsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
+        # self.goal = self.goalState()
+        g = (3, 2, 3, 4, 3)
+        self.goal = np.array(g)
+
+
         ####################### Inserting code here! #######################
-        
+    def goalState(self):
+        cumsum = np.array(self.CUMsum_mine)
+        state_index = self.state_indexes()
+        goal_state = np.zeros(state_index[-1] + 1, int)
+        for loc in state_index:
+            if self.three_dim:
+                goal_state[loc] = np.argmax(cumsum[loc[0], loc[1], :])
+
+            else:
+                goal_state[loc] = np.argmax(cumsum[loc, :])
+        return goal_state
+
+
     def surface_neigbhours(self, loc):
         '''
         Return the list of neighbours of loc
@@ -245,16 +262,25 @@ class Mine(search.Problem):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
 
-    def product(args):
-        # product('ABCD', 'xy') --> Ax Ay Bx By Cx Cy Dx Dy
-        # product(range(2), repeat=3) --> 000 001 010 011 100 101 110 111
-        pools = [tuple(pool) for pool in args]
-        result = [[]]
-        for pool in pools:
-            result = [x + [y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
-     
+    def state_indexes(self):
+        x_Locs = np.arange(self.len_x)
+
+        # 3D case
+        if self.three_dim:
+            y_Locs = np.arange(self.len_y)
+            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
+            pools = [tuple(pool) for pool in args]
+            result = [[]]
+            for pool in pools:
+                result = [x + [y] for x in result for y in pool]
+
+        # 2D case
+        else:
+            # state[1] = 1 #test is_dangerous
+            # state[3] = 1  # test is_dangerous
+            result = convert_to_list(x_Locs)
+
+        return result
     
     def actions(self, state):
         '''
@@ -276,36 +302,23 @@ class Mine(search.Problem):
         state = np.array(state)
 
         ####################### Inserting code here! #######################
-        x_Locs = np.arange(self.len_x)
+        state_indexs = self.state_indexes()
 
-        # 3D case
-        if self.three_dim:
-            state[1,0] = 1 #test is_dangerous
-            state[1, 2] = 1  # test is_dangerous
-            state[3, 1] = 1  # test is_dangerous
-            state[2, 2] = 1  # test is_dangerous
-            state[0, 0] = 1  # test is_dangerous
-            y_Locs = np.arange(self.len_y)
-            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
-            pools = [tuple(pool) for pool in args]
-            result = [[]]
-            for pool in pools:
-                result = [x + [y] for x in result for y in pool]
+        # state[1, 0] = 1  # test is_dangerous
+        # state[1, 2] = 1  # test is_dangerous
+        # state[3, 1] = 1  # test is_dangerous
+        # state[2, 2] = 1  # test is_dangerous
+        # state[0, 0] = 1  # test is_dangerous
 
-        # 2D case
-        else:
-            state[1] = 1 #test is_dangerous
-            state[3] = 1  # test is_dangerous
-            result = convert_to_list(x_Locs)
-
-        for prod in result:
-            action_loc = tuple([prod])
-            if self.three_dim:
-                action_loc = ([prod[0]],[prod[1]])
+        for loc in state_indexs:
+            action_loc = tuple([loc])
+            #if self.three_dim:
+                #action_loc = ([loc[0]],[loc[1]])
             if (self.is_dangerous(self.result(state,action_loc)) == False):
-                yield prod
+                yield tuple([loc])
 
         ####################### Inserting code here! #######################
+
         
                   
     def result(self, state, action):
@@ -422,6 +435,7 @@ class Mine(search.Problem):
         
         No loops needed in the implementation!
         '''
+        # can
         # convert to np.array in order to use numpy operators
         state = np.array(state)         
 
@@ -448,7 +462,13 @@ class Mine(search.Problem):
     
     # ========================  Class Mine  ==================================
     
-    
+def dp_value(state):
+    started = state > 0
+
+    if (np.any(started == True) != True):
+        return 0
+
+    return Mine.payoff(state)
     
 def search_dp_dig_plan(mine):
     '''
@@ -467,8 +487,12 @@ def search_dp_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
-    raise NotImplementedError
 
+    # res_DP = search.depth_first_tree_search(mine)
+    # print(res_DP)
+    state = mine.initial
+    print(dp_value(state))
+    return 1
 
     
     
