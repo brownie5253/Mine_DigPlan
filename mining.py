@@ -245,6 +245,26 @@ class Mine(search.Problem):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
 
+    def state_indexes(self):
+        x_Locs = np.arange(self.len_x)
+
+        # 3D case
+        if self.three_dim:
+            y_Locs = np.arange(self.len_y)
+            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
+            pools = [tuple(pool) for pool in args]
+            result = [[]]
+            for pool in pools:
+                result = [x + [y] for x in result for y in pool]
+
+        # 2D case
+        else:
+            # state[1] = 1 #test is_dangerous
+            # state[3] = 1  # test is_dangerous
+            result = convert_to_list(x_Locs)
+
+        return result
+
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
