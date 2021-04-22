@@ -120,6 +120,8 @@ def test_2D_search_dig_plan():
     print(mine.cumsum_mine)
     print("is_dangerous:")
     print(mine.is_dangerous(mine.initial))
+    print("Payoff:")
+    print(mine.payoff(mine.initial))
     print("Actions:")
     for a in mine.actions(mine.initial):
         print(a)
@@ -161,16 +163,16 @@ def test_3D_search_dig_plan():
 
     my_underground = some_3d_underground_1
 
-    mine = Mine(my_underground)
-    mine.console_display()
-    print(mine.initial)
-    print(mine.initial[3][2])
-    print(mine.surface_neigbhours((0,1)))
-    print("cumsum")
-    print(mine.cumsum_mine);
-    print("actions")
-    for a in mine.actions(mine.initial):
-        print(a)
+    # mine = Mine(my_underground)
+    # mine.console_display()
+    # print(mine.initial)
+    # print(mine.initial[3][2])
+    # print(mine.surface_neigbhours((0,1)))
+    # print("cumsum")
+    # print(mine.cumsum_mine);
+    # print("actions")
+    # for a in mine.actions(mine.initial):
+    #     print(a)
 
 
 

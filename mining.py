@@ -592,7 +592,7 @@ def find_action_sequence(s0, s1):
         while not (np.all((s0 == s1))):
             overallTruTru = np.all((s0 == s1))
             arrayTruTru = s0 == s1
-            print(s0)
+            # print(s0)
             for location in range(Mine.x_len):
                 if s0[location] == loc & s0[location] < s1[location]:
                     output.append((location, ))
@@ -612,6 +612,6 @@ s1 = (3, 2, 3, 4, 3)
 # s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
 # s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
 
-print(find_action_sequence(s0,s1))
+# print(find_action_sequence(s0,s1))
 
 
