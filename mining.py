@@ -63,6 +63,8 @@ from numbers import Number
 
 import search
 
+from functools import lru_cache
+
 def my_team():
 
      '''    Return the list of the team members of this assignment submission
@@ -266,10 +268,12 @@ class Mine(search.Problem):
         return result
 
     def at_bottom(self, state, action_loc):
-        if(state[action_loc] >= self.len_z):
-            return False
+        if(self.three_dim):
+            a = state[action_loc[0], action_loc[1]] < self.len_z
+            return a
         else:
-            return True
+            a = state[action_loc] < self.len_z
+            return a
 
 
     def actions(self, state):
@@ -293,20 +297,26 @@ class Mine(search.Problem):
 
         ####################### Inserting code here! #######################
         state_indexs = self.state_indexes()
-
-        # state[1, 0] = 1  # test is_dangerous
-        # state[1, 2] = 1  # test is_dangerous
-        # state[3, 1] = 1  # test is_dangerous
-        # state[2, 2] = 1  # test is_dangerous
-        # state[0, 0] = 1  # test is_dangerous
+        if self.three_dim:
+            a = 1 #cant be empty
+            state[1, 1] = 1
+        else:
+            a = 1 # cant be empty
+            # state[1] = 1  # test is_dangerous
+            state[2] = 1  # test is_dangerous
+            # state[4] = 1  # test is_dangerous
+            state[3] = 1  # test is_dangerous
+            state[0] = 1  # test is_dangerous
 
         for loc in state_indexs:
             action_loc = tuple([loc])
-            if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
-                yield tuple([loc])
-            #should work but if not try this
-            # if (self.is_dangerous(self.result(state,action_loc)) == False or self.at_bottom(state, action_loc) == False):
+            # if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
             #     yield tuple([loc])
+            #should work but if not try this
+            if(self.three_dim):
+                action_loc = tuple([loc[0], loc[1]])
+            if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
+                yield tuple([loc])
 
         ####################### Inserting code here! #######################
 
@@ -406,14 +416,14 @@ class Mine(search.Problem):
         # 3D case
         if self.three_dim:
             y_Locs = np.arange(self.len_y)
-            res_arr = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
-            res_arr = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
+            cumsum_indexes = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
 
         check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((res_arr * check))  # add up cumsum values for colums actualy dug in
+        return np.sum((cumsum_indexes * check))  # add up cumsum values for colums actualy dug in
 
 
     def is_dangerous(self, state):
@@ -439,7 +449,8 @@ class Mine(search.Problem):
         # 2D case
         else:
             # Simply check along the x axis for unacceptable tolerances
-            return(np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance))
+            a = np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance)
+            return(a)
 
 
         ####################### Inserting code here! #######################   
@@ -448,13 +459,19 @@ class Mine(search.Problem):
 
     # ========================  Class Mine  ==================================
 
-def dp_value(state):
-    started = state > 0
+@functools.lru_cache(maxsize=None)
+def dp_value(state, action):
 
+    new_state = Mine.result(state, action)
+
+    Current_node_payoff = Mine.payoff(new_state, action)
+
+    started = state > 0
     if (np.any(started == True) != True):
         return 0
 
-    return Mine.payoff(state)
+    actions = Mine.actions()
+    return
 
 def search_dp_dig_plan(mine):
     '''
@@ -478,7 +495,8 @@ def search_dp_dig_plan(mine):
     # res_DP = search.depth_first_tree_search(mine)
     # print(res_DP)
     state = mine.initial
-    print(dp_value(state))
+    for action in Mine.actions(mine, state):
+        print(dp_value(mine, state, action))
     return 1
 
 
