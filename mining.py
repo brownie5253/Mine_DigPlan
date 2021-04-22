@@ -7,7 +7,7 @@ Created on Wed Feb  3 17:56:47 2021
 
 # =============================================================================
 #                                  CHANGELOG:
-#   - Fixed Mine class, input arrays will be formatted as (x, z) for 2D and
+#   - Fixed Mine class, input arrays will be formatted as (x, z) for 2D and 
 #     (x, y, z) for 3D. - Ethan
 #   - States are now correctly working, e.g. doing state(action) will now find
 #     the correct location in the mine. - Ethan
@@ -63,13 +63,13 @@ from numbers import Number
 
 import search
 
-def my_team():    
+def my_team():
 
      '''    Return the list of the team members of this assignment submission
      as a list of triplet of the form (student_number, first_name, last_name)        '''
 
      return [ (10467858, 'Ethan', 'Griffiths'), (10467874, 'Mattias', 'Winsen'), (10486925, 'Connor', 'Browne') ]
-    
+
 def convert_to_tuple(a):
     '''
     Convert the parameter 'a' into a nested tuple of the same shape as 'a'.
@@ -96,8 +96,8 @@ def convert_to_tuple(a):
     else:
         # 'a' must be a nested list with 2 levels (a matrix)
         return tuple(tuple(r) for r in a)
-    
-    
+
+
 def convert_to_list(a):
     '''
     Convert the array-like parameter 'a' into a nested list of the same 
@@ -144,7 +144,7 @@ class Mine(search.Problem):
     
     Other attributes:
         self.len_x, self.len_y, self.len_z : int : underground.shape
-        self.cumsum_mine : float array : cumulative sums of the columns of the
+        self.cumsum_mine : float array : cumulative sums of the columns of the 
                                          mine
     
     A state has the same dimension as the surface of the mine.
@@ -158,14 +158,14 @@ class Mine(search.Problem):
     
     States must be tuple-based.
     
-    '''    
-    
+    '''
+
     def __init__(self, underground, dig_tolerance = 1):
         '''
         Constructor
         
         Initialize the attributes
-        self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z,
+        self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z, 
         self.cumsum_mine, and self.initial
         
         The state self.initial is a filled with zeros.
@@ -211,24 +211,7 @@ class Mine(search.Problem):
 
         self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
-        # self.goal = self.goalState()
-        g = (3, 2, 3, 4, 3)
-        self.goal = np.array(g)
-
-
         ####################### Inserting code here! #######################
-    def goalState(self):
-        cumsum = np.array(self.CUMsum_mine)
-        state_index = self.state_indexes()
-        goal_state = np.zeros(state_index[-1] + 1, int)
-        for loc in state_index:
-            if self.three_dim:
-                goal_state[loc] = np.argmax(cumsum[loc[0], loc[1], :])
-
-            else:
-                goal_state[loc] = np.argmax(cumsum[loc, :])
-        return goal_state
-
 
     def surface_neigbhours(self, loc):
         '''
@@ -255,33 +238,13 @@ class Mine(search.Problem):
                 L.append((loc[0]+1, ))
         else:
             # len(loc) == 2
-            for dx, dy in ((-1, -1), (-1, 0), (-1, +1),
-                          (0, -1), (0, +1),
+            for dx, dy in ((-1, -1), (-1, 0), (-1, +1), 
+                          (0, -1), (0, +1), 
                           (+1, -1), (+1, 0), (+1, +1)):
                 if  (0 <= loc[0]+dx < self.len_x) and (0 <= loc[1]+dy < self.len_y):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
 
-    def state_indexes(self):
-        x_Locs = np.arange(self.len_x)
-
-        # 3D case
-        if self.three_dim:
-            y_Locs = np.arange(self.len_y)
-            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
-            pools = [tuple(pool) for pool in args]
-            result = [[]]
-            for pool in pools:
-                result = [x + [y] for x in result for y in pool]
-
-        # 2D case
-        else:
-            # state[1] = 1 #test is_dangerous
-            # state[3] = 1  # test is_dangerous
-            result = convert_to_list(x_Locs)
-
-        return result
-    
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
@@ -320,7 +283,7 @@ class Mine(search.Problem):
         ####################### Inserting code here! #######################
 
 
-                  
+
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must a valid actions.
@@ -369,14 +332,14 @@ class Mine(search.Problem):
     def plot_state(state):
         if state.ndim==1:
             fig, ax = plt.subplots()
-            ax.bar(np.arange(state.shape[0]) ,
+            ax.bar(np.arange(state.shape[0]) , 
                     state
                     )
             ax.set_xlabel('x')
             ax.set_ylabel('z')
         else:
             assert state.ndim==2
-            # bar3d(x, y, z, dx, dy, dz,
+            # bar3d(x, y, z, dx, dy, dz, 
             # fake data
             _x = np.arange(state.shape[0])
             _y = np.arange(state.shape[1])
@@ -456,7 +419,7 @@ class Mine(search.Problem):
 
 
     # ========================  Class Mine  ==================================
-    
+
 def dp_value(state):
     started = state > 0
 
@@ -464,7 +427,7 @@ def dp_value(state):
         return 0
 
     return Mine.payoff(state)
-    
+
 def search_dp_dig_plan(mine):
     '''
     Search using Dynamic Programming the most profitable sequence of 
@@ -490,8 +453,8 @@ def search_dp_dig_plan(mine):
     print(dp_value(state))
     return 1
 
-    
-    
+
+
 def search_bb_dig_plan(mine):
     '''
     Compute, using Branch and Bound, the most profitable sequence of 
@@ -531,25 +494,44 @@ def search_bb_dig_plan(mine):
     #                 del frontier[child] # delete the incumbent node
     #                 frontier.append(child) #
     # return None
-
-    def b(node):
+    
+    def b(state): # Return upper bound for the state
         pass
 
     node = search.Node(mine.initial)
-    f = mine.payoff # Payoff is the lower bound of the search, as it is the total payoff of the current state
-    frontier = search.PriorityQueue(max,f=f)
+    f = lambda x : mine.payoff(x.state) # Payoff is the lower bound of the search, as it is the total payoff of the current state
+    frontier = search.PriorityQueue('max',f)
     frontier.append(node)
 
     while frontier:
         node = frontier.pop()
-        # if node.payoff:
+        print(node.state)
+        print(f(node))
+
+        # test goes here
+        for child in node.expand(mine):
+            if child not in frontier:
+                frontier.append(child)
+            else:
+                if f(child) > frontier[child]:
+                    del frontier[child] # delete the incumbent node
+                    frontier.append(child)
+
+    
+
+# Debugging:
+# some_2d_underground_1 = np.array([
+#     [-0.814, 0.637, 1.824, -0.563],
+#     [0.559, -0.234, -0.366, 0.07],
+#     [0.175, -0.284, 0.026, -0.316],
+#     [0.212, 0.088, 0.304, 0.604],
+#     [-1.231, 1.558, -0.467, -0.371]])
+# mine = Mine(some_2d_underground_1)
+# search_bb_dig_plan(mine)
 
 
 
-
-
-
-
+    
 
 
 
