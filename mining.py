@@ -7,8 +7,8 @@ Created on Wed Feb  3 17:56:47 2021
 
 # =============================================================================
 #                                  CHANGELOG:
-#   - Fixed Mine class, input arrays will be formatted as (x,z) for 2D and 
-#     (x,y,z) for 3D. - Ethan
+#   - Fixed Mine class, input arrays will be formatted as (x, z) for 2D and
+#     (x, y, z) for 3D. - Ethan
 #   - States are now correctly working, e.g. doing state(action) will now find
 #     the correct location in the mine. - Ethan
 #   - Added variable self.three_dim, set to True if mine is 3D - Ethan
@@ -19,7 +19,7 @@ Created on Wed Feb  3 17:56:47 2021
 # 
 #   - THIS IS ANOTHER COMMENT
 #   - I am confused
-    Big mood
+#   Big mood
 # 
 # =============================================================================
 
@@ -29,17 +29,17 @@ An open-pit mine is a grid represented with a 2D or 3D numpy array.
 
 The first coordinates are surface locations.
 
-In the 2D case, the coordinates are (x,z).
-In the 3D case, the coordinates are (x,y,z).
+In the 2D case, the coordinates are (x, z).
+In the 3D case, the coordinates are (x, y, z).
 The last coordinate 'z' points down.
 
     
 A state indicates for each surface location  how many cells 
 have been dug in this pit column.
 
-For a 3D mine, a surface location is represented with a tuple (x,y).
+For a 3D mine, a surface location is represented with a tuple (x, y).
 
-For a 2D mine, a surface location is represented with a tuple (x,).
+For a 2D mine, a surface location is represented with a tuple (x, ).
 
 
 Two surface cells are neighbours if they share a common border point.
@@ -65,8 +65,8 @@ import search
 
 def my_team():    
 
-     '''    Return the list of the team members of this assignment submission 
-     as a list of triplet of the form (student_number, first_name, last_name)        ''' 
+     '''    Return the list of the team members of this assignment submission
+     as a list of triplet of the form (student_number, first_name, last_name)        '''
 
      return [ (10467858, 'Ethan', 'Griffiths'), (10467874, 'Mattias', 'Winsen'), (10486925, 'Connor', 'Browne') ]
     
@@ -122,7 +122,7 @@ def convert_to_list(a):
         return list(a)
     else:
         # 'a' must be a nested list with 2 levels (a matrix)
-        return [list(r) for r in a]    
+        return [list(r) for r in a]
 
 
 
@@ -144,7 +144,7 @@ class Mine(search.Problem):
     
     Other attributes:
         self.len_x, self.len_y, self.len_z : int : underground.shape
-        self.CUMsum_mine : float array : CUMulative sums of the columns of the 
+        self.cumsum_mine : float array : cumulative sums of the columns of the
                                          mine
     
     A state has the same dimension as the surface of the mine.
@@ -166,7 +166,7 @@ class Mine(search.Problem):
         
         Initialize the attributes
         self.underground, self.dig_tolerance, self.len_x, self.len_y, self.len_z,
-        self.CUMsum_mine, and self.initial
+        self.cumsum_mine, and self.initial
         
         The state self.initial is a filled with zeros.
 
@@ -183,33 +183,33 @@ class Mine(search.Problem):
 
         '''
         # super().__init__() # call to parent class constructor not needed
-        
-        self.underground = underground 
+
+        self.underground = underground
         # self.underground  should be considered as a 'read-only' variable!
         self.dig_tolerance = dig_tolerance
-        assert underground.ndim in (2,3)
-        
+        assert underground.ndim in (2, 3)
+
         ####################### Inserting code here! #######################    
-        
+
         # Determine if mine is 3D or not
         if self.underground.ndim == 3:
             self.three_dim = True
         else:
             self.three_dim = False
-        
+
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y,x,z) idk y
-        
+        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y, x, z) idk y
+
         # 3D mine case
         if self.three_dim:
             self.len_y = self.underground.shape[0]
-            self.initial = np.zeros((self.len_x,self.len_y), dtype=int)
+            self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
         # 2D mine case            
         else:
-            self.len_y = 0            
-            self.initial = np.zeros(self.len_x, dtype=int)        
-            
-        self.CUMsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
+            self.len_y = 0
+            self.initial = np.zeros(self.len_x, dtype=int)
+
+        self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
         # self.goal = self.goalState()
         g = (3, 2, 3, 4, 3)
@@ -237,8 +237,8 @@ class Mine(search.Problem):
         Parameters
         ----------
         loc : surface coordinates of a cell.
-            a singleton (x,) in case of a 2D mine
-            a pair (x,y) in case of a 3D mine
+            a singleton (x, ) in case of a 2D mine
+            a pair (x, y) in case of a 3D mine
 
         Returns
         -------
@@ -247,17 +247,17 @@ class Mine(search.Problem):
 
         '''
         L=[]
-        assert len(loc) in (1,2)
+        assert len(loc) in (1, 2)
         if len(loc)==1:
             if loc[0]-1>=0:
-                L.append((loc[0]-1,))
+                L.append((loc[0]-1, ))
             if loc[0]+1<self.len_x:
-                L.append((loc[0]+1,))
+                L.append((loc[0]+1, ))
         else:
             # len(loc) == 2
-            for dx,dy in ((-1,-1),(-1,0),(-1,+1),
-                          (0,-1),(0,+1),
-                          (+1,-1),(+1,0),(+1,+1)):
+            for dx, dy in ((-1, -1), (-1, 0), (-1, +1),
+                          (0, -1), (0, +1),
+                          (+1, -1), (+1, 0), (+1, +1)):
                 if  (0 <= loc[0]+dx < self.len_x) and (0 <= loc[1]+dy < self.len_y):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
@@ -298,7 +298,7 @@ class Mine(search.Problem):
         -------
         a generator of valid actions
 
-        '''        
+        '''
         state = np.array(state)
 
         ####################### Inserting code here! #######################
@@ -319,7 +319,7 @@ class Mine(search.Problem):
 
         ####################### Inserting code here! #######################
 
-        
+
                   
     def result(self, state, action):
         """Return the state that results from executing the given
@@ -329,8 +329,8 @@ class Mine(search.Problem):
         new_state = np.array(state) # Make a copy
         new_state[action] += 1
         return convert_to_tuple(new_state)
-                
-    
+
+
     def console_display(self):
         '''
         Display the mine on the console
@@ -343,13 +343,13 @@ class Mine(search.Problem):
         print('Mine of depth {}'.format(self.len_z))
         if self.underground.ndim == 2:
             # 2D mine
-            print('Plane x,z view')
+            print('Plane x, z view')
         else:
             # 3D mine
-            print('Level by level x,y slices')
+            print('Level by level x, y slices')
         #
         print(self.__str__())
-        
+
     def __str__(self):
         if self.underground.ndim == 2:
             # 2D mine
@@ -358,14 +358,14 @@ class Mine(search.Problem):
             # 3D mine
             # level by level representation
             return '\n'.join('level {}\n'.format(z)
-                   +str(self.underground[...,z]) for z in range(self.len_z))
-                    
-                        
-                
-            return self.underground[loc[0], loc[1],:]
-        
-    
-    @staticmethod   
+                   +str(self.underground[..., z]) for z in range(self.len_z))
+
+
+
+            return self.underground[loc[0], loc[1], :]
+
+
+    @staticmethod
     def plot_state(state):
         if state.ndim==1:
             fig, ax = plt.subplots()
@@ -381,12 +381,12 @@ class Mine(search.Problem):
             _x = np.arange(state.shape[0])
             _y = np.arange(state.shape[1])
             _yy, _xx = np.meshgrid(_y, _x) # cols, rows
-            x, y = _xx.ravel(), _yy.ravel()            
+            x, y = _xx.ravel(), _yy.ravel()
             top = state.ravel()
             bottom = np.zeros_like(top)
             width = depth = 1
-            fig = plt.figure(figsize=(3,3))
-            ax1 = fig.add_subplot(111,projection='3d')
+            fig = plt.figure(figsize=(3, 3))
+            ax1 = fig.add_subplot(111, projection='3d')
             ax1.bar3d(x, y, bottom, width, depth, top, shade=True)
             ax1.set_xlabel('x')
             ax1.set_ylabel('y')
@@ -415,18 +415,14 @@ class Mine(search.Problem):
         # 3D case
         if self.three_dim:
             y_Locs = np.arange(self.len_y)
-            res_arr = self.CUMsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            res_arr = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
-            res_arr = self.CUMsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the CUMsum of each loc
+            res_arr = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
 
         check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((res_arr * check))  # add up CUMsum values for colums actualy dug in
-
-
-
-
+        return np.sum((res_arr * check))  # add up cumsum values for colums actualy dug in
 
 
     def is_dangerous(self, state):
@@ -435,31 +431,30 @@ class Mine(search.Problem):
         
         No loops needed in the implementation!
         '''
-        # can
         # convert to np.array in order to use numpy operators
-        state = np.array(state)         
+        state = np.array(state)
 
         ####################### Inserting code here! #######################
         # 3D case
         if self.three_dim:
-            xtest = state[:,:-1] - state[:,1:] # x axis
-            ytest = state[:-1,:] - state[1:,:] # y axis
-            dia1test = state[:-1,:-1] - state[1:,1:] # 1st diag axis
-            dia2test = np.rot90(state)[:-1,:-1] - np.rot90(state)[1:,1:] # 2nd diag axis
-            
+            xtest = state[:, :-1] - state[:, 1:] # x axis
+            ytest = state[:-1, :] - state[1:, :] # y axis
+            dia1test = state[:-1, :-1] - state[1:, 1:] # 1st diag axis
+            dia2test = np.rot90(state)[:-1, :-1] - np.rot90(state)[1:, 1:] # 2nd diag axis
+
             # Concatenate all tests and check for unacceptable tolerances
-            return(np.any(abs(np.concatenate((xtest,ytest,dia1test,dia2test),
+            return(np.any(abs(np.concatenate((xtest, ytest, dia1test, dia2test),
                                              axis=None)) > self.dig_tolerance))
         # 2D case
         else:
             # Simply check along the x axis for unacceptable tolerances
             return(np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance))
-        
-        
+
+
         ####################### Inserting code here! #######################   
 
 
-    
+
     # ========================  Class Mine  ==================================
     
 def dp_value(state):
@@ -487,6 +482,7 @@ def search_dp_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
+    raise NotImplementedError
 
     # res_DP = search.depth_first_tree_search(mine)
     # print(res_DP)
@@ -512,9 +508,48 @@ def search_bb_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
-    
-    
-    raise NotImplementedError
+    # Best first graph search (for reference)
+    # node = Node(problem.initial)
+    # if problem.goal_test(node.state):
+    #     return node
+    # frontier = PriorityQueue(f=f)
+    # frontier.append(node)
+    # explored = set() # set of states
+    # while frontier:
+    #     node = frontier.pop()
+    #     if problem.goal_test(node.state):
+    #         return node
+    #     explored.add(node.state)
+    #     for child in node.expand(problem):
+    #         if child.state not in explored and child not in frontier:
+    #             frontier.append(child)
+    #         elif child in frontier:
+    #             # frontier[child] is the f value of the
+    #             # incumbent node that shares the same state as
+    #             # the node child.  Read implementation of PriorityQueue
+    #             if f(child) < frontier[child]:
+    #                 del frontier[child] # delete the incumbent node
+    #                 frontier.append(child) #
+    # return None
+
+    def b(node):
+        pass
+
+    node = search.Node(mine.initial)
+    f = mine.payoff # Payoff is the lower bound of the search, as it is the total payoff of the current state
+    frontier = search.PriorityQueue(max,f=f)
+    frontier.append(node)
+
+    while frontier:
+        node = frontier.pop()
+        # if node.payoff:
+
+
+
+
+
+
+
 
 
 
@@ -535,16 +570,46 @@ def find_action_sequence(s0, s1):
     -------
     A sequence of actions to go from state s0 to state s1
 
-    '''    
+    '''
+
+
+
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
-    raise NotImplementedError
-        
-     
-        
-        
-        
-        
-    
-    
-    
+
+    s0 = np.array(s0)
+    s1 = np.array(s1)
+
+    Mine.x_len = len(s0) #temporary for testing
+
+    loc = 0
+    output = []
+    if Mine.three_dim: #if 3d
+        raise NotImplementedError
+    else: #if 2d
+        while not (np.all((s0 == s1))):
+            overallTruTru = np.all((s0 == s1))
+            arrayTruTru = s0 == s1
+            print(s0)
+            for location in range(Mine.x_len):
+                if s0[location] == loc & s0[location] < s1[location]:
+                    output.append((location, ))
+                    s0[location] += 1
+            loc += 1
+
+
+    return tuple(output)
+
+
+#test states
+Mine.three_dim = False
+s0 = (0, 1, 2, 3, 0)
+s1 = (3, 2, 3, 4, 3)
+
+# Mine.three_dim = True
+# s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
+# s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
+
+print(find_action_sequence(s0,s1))
+
+
