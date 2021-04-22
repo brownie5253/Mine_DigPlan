@@ -271,7 +271,7 @@ class Mine(search.Problem):
     def at_bottom(self, state, action_loc):
         """Check if the state is at the bottom of the mine for the given action.
         Returns a bool containing the result of this test."""
-        return (state[action_loc] >= self.len_z)
+        return (state[action_loc] < self.len_z)
 
 
     def actions(self, state):
@@ -297,7 +297,7 @@ class Mine(search.Problem):
         state_indexs = self.state_indexes()
         if self.three_dim:
             a = 1 #cant be empty
-            state[1, 1] = 1
+            state[1, 1] = 2
         else:
             a = 1 # cant be empty
             # state[1] = 1  # test is_dangerous
@@ -308,9 +308,6 @@ class Mine(search.Problem):
 
         for loc in state_indexs:
             action_loc = tuple([loc])
-            # if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
-            #     yield tuple([loc])
-            #should work but if not try this
             if(self.three_dim):
                 action_loc = tuple([loc[0], loc[1]])
             if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
@@ -406,21 +403,34 @@ class Mine(search.Problem):
         state = np.array(state)
 
         ####################### Inserting code here! #######################
-        #will fix comments for submission these r just to explain it to you guys
+        state_indexes = self.state_indexes()
 
         x_Locs = np.arange(self.len_x)  # array of indexes for all X columns
-        z_Locs = state - 1  # dug level -1 as indexes would be a level too deep
+        z_Locs_temp = state - 1  # dug level -1 as indexes would be a level too deep
+
+
+         # for x in z_Locs_temp.shape(0):
+         #    for y in z_Locs_temp.shape(10):
 
         # 3D case
         if self.three_dim:
-            y_Locs = np.arange(self.len_y)
+            x_Locs = []
+            # y_Locs = np.arange(self.len_y)
+            y_Locs = []
+            z_Locs = []
+            for index in range(len(state_indexes)):
+                x_Locs.append([state_indexes[index][0]])
+                y_Locs.append([state_indexes[index][1]])
+                z_Locs.append([z_Locs_temp[tuple(state_indexes[index])]])
+
             cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
+            z_Locs = z_Locs_temp
             cumsum_indexes = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
 
-        check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
+        check = np.array(z_Locs) >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
         return np.sum((cumsum_indexes * check))  # add up cumsum values for colums actualy dug in
 
 
