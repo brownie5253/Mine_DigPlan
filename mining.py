@@ -265,6 +265,13 @@ class Mine(search.Problem):
 
         return result
 
+    def at_bottom(self, state, action_loc):
+        if(state[action_loc] >= self.len_z):
+            return False
+        else:
+            return True
+
+
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
@@ -295,10 +302,11 @@ class Mine(search.Problem):
 
         for loc in state_indexs:
             action_loc = tuple([loc])
-            #if self.three_dim:
-                #action_loc = ([loc[0]],[loc[1]])
-            if (self.is_dangerous(self.result(state,action_loc)) == False):
+            if (self.is_dangerous(self.result(state,action_loc)) or self.at_bottom(state, action_loc) == False):
                 yield tuple([loc])
+            #should work but if not try this
+            # if (self.is_dangerous(self.result(state,action_loc)) == False or self.at_bottom(state, action_loc) == False):
+            #     yield tuple([loc])
 
         ####################### Inserting code here! #######################
 
