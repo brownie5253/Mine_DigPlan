@@ -50,6 +50,9 @@ An action is represented by the surface location where the dig takes place.
 
 
 """
+import time
+from functools import lru_cache
+
 import numpy as np
 import matplotlib.pyplot as plt
 # This import registers the 3D projection, but is otherwise unused.
@@ -62,8 +65,6 @@ import functools # @lru_cache(maxsize=32)
 from numbers import Number
 
 import search
-
-from functools import lru_cache
 
 def my_team():
 
@@ -200,11 +201,11 @@ class Mine(search.Problem):
             self.three_dim = False
 
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y, x, z) idk y
+        self.len_x = self.underground.shape[0] # 0 axis is always x
 
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[0]
+            self.len_y = self.underground.shape[1]
             self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
         # 2D mine case            
         else:
@@ -268,12 +269,9 @@ class Mine(search.Problem):
         return result
 
     def at_bottom(self, state, action_loc):
-        if(self.three_dim):
-            a = state[action_loc[0], action_loc[1]] < self.len_z
-            return a
-        else:
-            a = state[action_loc] < self.len_z
-            return a
+        """Check if the state is at the bottom of the mine for the given action.
+        Returns a bool containing the result of this test."""
+        return (state[action_loc] >= self.len_z)
 
 
     def actions(self, state):
@@ -449,8 +447,7 @@ class Mine(search.Problem):
         # 2D case
         else:
             # Simply check along the x axis for unacceptable tolerances
-            a = np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance)
-            return(a)
+            return(np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance))
 
 
         ####################### Inserting code here! #######################   
@@ -498,7 +495,6 @@ def search_dp_dig_plan(mine):
     for action in Mine.actions(mine, state):
         print(dp_value(mine, state, action))
     return 1
-
 
 
 def search_bb_dig_plan(mine):
@@ -549,10 +545,14 @@ def search_bb_dig_plan(mine):
     frontier = search.PriorityQueue('max',f)
     frontier.append(node)
 
+    # Store best lower bound found
+    best_node = node
+
     while frontier:
         node = frontier.pop()
-        print(node.state)
-        print(f(node))
+        # Test statements:
+        # print(node.state)
+        # print(f(node))
 
         # test goes here
         for child in node.expand(mine):
@@ -561,9 +561,12 @@ def search_bb_dig_plan(mine):
             else:
                 if f(child) > frontier[child]:
                     del frontier[child] # delete the incumbent node
+                    best_node = child # update best node
                     frontier.append(child)
 
-    
+    return best_node.state, best_node.path
+
+# search_bb_mem = lru_cache(maxsize=20000)(search_bb_dig_plan)
 
 # Debugging:
 # some_2d_underground_1 = np.array([
@@ -573,9 +576,12 @@ def search_bb_dig_plan(mine):
 #     [0.212, 0.088, 0.304, 0.604],
 #     [-1.231, 1.558, -0.467, -0.371]])
 # mine = Mine(some_2d_underground_1)
+
+# tic = time.time()
+# # search_bb_mem(mine)
 # search_bb_dig_plan(mine)
-
-
+# toc = time.time()
+# print('BB Computation took {} seconds'.format(toc-tic))
 
     
 
