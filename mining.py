@@ -264,7 +264,7 @@ class Mine(search.Problem):
         else:
             # state[1] = 1 #test is_dangerous
             # state[3] = 1  # test is_dangerous
-            result = x_Locs
+            result = convert_to_list(x_Locs)
 
         return convert_to_tuple(result)
 
@@ -298,7 +298,7 @@ class Mine(search.Problem):
         state_indexs = self.state_indexes()
 
         for loc in state_indexs:
-            if (self.is_dangerous(self.result(state,loc)) == False):
+            if (self.is_dangerous(self.result(state,[loc])) == False):
                 if(self.at_bottom(state, loc)):
                     yield tuple([loc])
 
