@@ -113,13 +113,18 @@ def test_2D_search_dig_plan():
     my_underground = some_2d_underground_1
 
     mine = Mine(my_underground)
+    mine.initial += 0
+    # mine.initial = np.array([4, 3, 2, 3, 3])
     mine.console_display()
+    print("Initial:")
     print(mine.initial)
-    print(mine.surface_neigbhours((2,)))
+    # print(mine.surface_neigbhours((2,)))
     print("Cumsum:")
     print(mine.cumsum_mine)
     print("is_dangerous:")
     print(mine.is_dangerous(mine.initial))
+    print("Payoff:")
+    print(mine.payoff(mine.initial))
     print("Actions:")
     for a in mine.actions(mine.initial):
         print(a)
@@ -161,15 +166,20 @@ def test_3D_search_dig_plan():
 
     my_underground = some_3d_underground_1
 
+    # COMMENTED OUT TEMPORARILY:
     mine = Mine(my_underground)
+    mine.initial += 0
+    # mine.initial = np.array([4, 3, 2, 3, 3])
     mine.console_display()
+    print("Initial:")
     print(mine.initial)
-    print(mine.initial[3][2])
-    print(mine.surface_neigbhours((0,1)))
+    # print(mine.surface_neigbhours((2,)))
     print("Cumsum:")
     print(mine.cumsum_mine)
     print("is_dangerous:")
     print(mine.is_dangerous(mine.initial))
+    print("Payoff:")
+    print(mine.payoff(mine.initial))
     print("Actions:")
     for a in mine.actions(mine.initial):
         print(a)

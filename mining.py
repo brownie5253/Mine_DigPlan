@@ -50,6 +50,9 @@ An action is represented by the surface location where the dig takes place.
 
 
 """
+import time
+from functools import lru_cache
+
 import numpy as np
 import matplotlib.pyplot as plt
 # This import registers the 3D projection, but is otherwise unused.
@@ -198,11 +201,11 @@ class Mine(search.Problem):
             self.three_dim = False
 
         self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[-2] #change# -2 is first for 2d and 2nd for 3d, 3d indexing is (y, x, z) idk y
+        self.len_x = self.underground.shape[0] # 0 axis is always x
 
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[0]
+            self.len_y = self.underground.shape[1]
             self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
         # 2D mine case            
         else:
@@ -245,6 +248,32 @@ class Mine(search.Problem):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
 
+    def state_indexes(self):
+        x_Locs = np.arange(self.len_x)
+
+        # 3D case
+        if self.three_dim:
+            y_Locs = np.arange(self.len_y)
+            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
+            pools = [tuple(pool) for pool in args]
+            result = [[]]
+            for pool in pools:
+                result = [x + [y] for x in result for y in pool]
+
+        # 2D case
+        else:
+            # state[1] = 1 #test is_dangerous
+            # state[3] = 1  # test is_dangerous
+            result = convert_to_list(x_Locs)
+
+        return result
+
+    def at_bottom(self, state, action_loc):
+        """Check if the state is at the bottom of the mine for the given action.
+        Returns a bool containing the result of this test."""
+        return (state[action_loc] < self.len_z)
+
+
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
@@ -265,36 +294,27 @@ class Mine(search.Problem):
         state = np.array(state)
 
         ####################### Inserting code here! #######################
-        x_Locs = np.arange(self.len_x)
-
-        # 3D case
+        state_indexs = self.state_indexes()
         if self.three_dim:
-            state[1, 0] = 1 #test is_dangerous
-            state[1, 2] = 1  # test is_dangerous
-            state[3, 1] = 1  # test is_dangerous
-            state[2, 2] = 1  # test is_dangerous
-            state[0, 0] = 1  # test is_dangerous
-            y_Locs = np.arange(self.len_y)
-            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
-            pools = [tuple(pool) for pool in args]
-            result = [[]]
-            for pool in pools:
-                result = [x + [y] for x in result for y in pool]
-
-        # 2D case
+            a = 1 #cant be empty
+            state[1, 1] = 2
         else:
-            state[1] = 1 #test is_dangerous
+            a = 1 # cant be empty
+            # state[1] = 1  # test is_dangerous
+            state[2] = 1  # test is_dangerous
+            # state[4] = 1  # test is_dangerous
             state[3] = 1  # test is_dangerous
-            result = convert_to_list(x_Locs)
+            state[0] = 1  # test is_dangerous
 
-        for prod in result:
-            action_loc = tuple([prod])
-            if self.three_dim:
-                action_loc = ([prod[0]], [prod[1]])
-            if (self.is_dangerous(self.result(state, action_loc)) == False):
-                yield prod
+        for loc in state_indexs:
+            action_loc = tuple([loc])
+            if(self.three_dim):
+                action_loc = tuple([loc[0], loc[1]])
+            if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
+                yield tuple([loc])
 
         ####################### Inserting code here! #######################
+
 
 
     def result(self, state, action):
@@ -383,22 +403,35 @@ class Mine(search.Problem):
         state = np.array(state)
 
         ####################### Inserting code here! #######################
-        #will fix comments for submission these r just to explain it to you guys
+        state_indexes = self.state_indexes()
 
         x_Locs = np.arange(self.len_x)  # array of indexes for all X columns
-        z_Locs = state - 1  # dug level -1 as indexes would be a level too deep
+        z_Locs_temp = state - 1  # dug level -1 as indexes would be a level too deep
+
+
+         # for x in z_Locs_temp.shape(0):
+         #    for y in z_Locs_temp.shape(10):
 
         # 3D case
         if self.three_dim:
-            y_Locs = np.arange(self.len_y)
-            res_arr = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            x_Locs = []
+            # y_Locs = np.arange(self.len_y)
+            y_Locs = []
+            z_Locs = []
+            for index in range(len(state_indexes)):
+                x_Locs.append([state_indexes[index][0]])
+                y_Locs.append([state_indexes[index][1]])
+                z_Locs.append([z_Locs_temp[tuple(state_indexes[index])]])
+
+            cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
         else:
-            res_arr = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
+            z_Locs = z_Locs_temp
+            cumsum_indexes = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
 
-        check = z_Locs >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((res_arr * check))  # add up cumsum values for colums actualy dug in
+        check = np.array(z_Locs) >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
+        return np.sum((cumsum_indexes * check))  # add up cumsum values for colums actualy dug in
 
 
     def is_dangerous(self, state):
@@ -419,7 +452,7 @@ class Mine(search.Problem):
             dia2test = np.rot90(state)[:-1, :-1] - np.rot90(state)[1:, 1:] # 2nd diag axis
 
             # Concatenate all tests and check for unacceptable tolerances
-            return(np.any(abs(np.concatenate((xtest, ytest, dia1test, dia2test), 
+            return(np.any(abs(np.concatenate((xtest, ytest, dia1test, dia2test),
                                              axis=None)) > self.dig_tolerance))
         # 2D case
         else:
@@ -433,7 +466,19 @@ class Mine(search.Problem):
 
     # ========================  Class Mine  ==================================
 
+@functools.lru_cache(maxsize=None)
+def dp_value(state, action):
 
+    new_state = Mine.result(state, action)
+
+    Current_node_payoff = Mine.payoff(new_state, action)
+
+    started = state > 0
+    if (np.any(started == True) != True):
+        return 0
+
+    actions = Mine.actions()
+    return
 
 def search_dp_dig_plan(mine):
     '''
@@ -454,7 +499,12 @@ def search_dp_dig_plan(mine):
     '''
     raise NotImplementedError
 
-
+    # res_DP = search.depth_first_tree_search(mine)
+    # print(res_DP)
+    state = mine.initial
+    for action in Mine.actions(mine, state):
+        print(dp_value(mine, state, action))
+    return 1
 
 
 def search_bb_dig_plan(mine):
@@ -489,30 +539,59 @@ def search_bb_dig_plan(mine):
     #         if child.state not in explored and child not in frontier:
     #             frontier.append(child)
     #         elif child in frontier:
-    #             # frontier[child] is the f value of the 
-    #             # incumbent node that shares the same state as 
+    #             # frontier[child] is the f value of the
+    #             # incumbent node that shares the same state as
     #             # the node child.  Read implementation of PriorityQueue
     #             if f(child) < frontier[child]:
     #                 del frontier[child] # delete the incumbent node
-    #                 frontier.append(child) # 
+    #                 frontier.append(child) #
     # return None
     
-    def b(node):
+    def b(state): # Return upper bound for the state
         pass
 
     node = search.Node(mine.initial)
-    f = mine.payoff # Payoff is the lower bound of the search, as it is the total payoff of the current state
-    frontier = search.PriorityQueue(max,f=f)
+    f = lambda x : mine.payoff(x.state) # Payoff is the lower bound of the search, as it is the total payoff of the current state
+    frontier = search.PriorityQueue('max',f)
     frontier.append(node)
+
+    # Store best lower bound found
+    best_node = node
 
     while frontier:
         node = frontier.pop()
-        # if node.payoff:
+        # Test statements:
+        # print(node.state)
+        # print(f(node))
 
-    
+        # test goes here
+        for child in node.expand(mine):
+            if child not in frontier:
+                frontier.append(child)
+            else:
+                if f(child) > frontier[child]:
+                    del frontier[child] # delete the incumbent node
+                    best_node = child # update best node
+                    frontier.append(child)
 
+    return best_node.state, best_node.path
 
+# search_bb_mem = lru_cache(maxsize=20000)(search_bb_dig_plan)
 
+# Debugging:
+# some_2d_underground_1 = np.array([
+#     [-0.814, 0.637, 1.824, -0.563],
+#     [0.559, -0.234, -0.366, 0.07],
+#     [0.175, -0.284, 0.026, -0.316],
+#     [0.212, 0.088, 0.304, 0.604],
+#     [-1.231, 1.558, -0.467, -0.371]])
+# mine = Mine(some_2d_underground_1)
+
+# tic = time.time()
+# # search_bb_mem(mine)
+# search_bb_dig_plan(mine)
+# toc = time.time()
+# print('BB Computation took {} seconds'.format(toc-tic))
 
     
 
@@ -536,6 +615,12 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
 
@@ -558,15 +643,42 @@ def find_action_sequence(s0, s1):
             if np.all((s0 == s1)):
                 break
     else: #if 2d
+<<<<<<< HEAD
         while True:
+=======
+        while not (np.all((s0 == s1))):
+            overallTruTru = np.all((s0 == s1))
+            arrayTruTru = s0 == s1
+            # print(s0)
+>>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
             for location in range(Mine.x_len):
                 if s0[location] == loc & s0[location] < s1[location]:
                     output.append((location, ))
                     s0[location] += 1
             loc += 1
+<<<<<<< HEAD
+=======
+
+>>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
 
             if np.all((s0 == s1)):
                 break
             
     return tuple(output)
 
+<<<<<<< HEAD
+=======
+
+#test states
+Mine.three_dim = False
+s0 = (0, 1, 2, 3, 0)
+s1 = (3, 2, 3, 4, 3)
+
+# Mine.three_dim = True
+# s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
+# s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
+
+# print(find_action_sequence(s0,s1))
+
+
+>>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
