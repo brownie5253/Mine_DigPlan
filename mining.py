@@ -615,12 +615,9 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
-<<<<<<< HEAD
-=======
 
 
 
->>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
 
@@ -643,42 +640,15 @@ def find_action_sequence(s0, s1):
             if np.all((s0 == s1)):
                 break
     else: #if 2d
-<<<<<<< HEAD
         while True:
-=======
-        while not (np.all((s0 == s1))):
-            overallTruTru = np.all((s0 == s1))
-            arrayTruTru = s0 == s1
-            # print(s0)
->>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
             for location in range(Mine.x_len):
                 if s0[location] == loc & s0[location] < s1[location]:
                     output.append((location, ))
                     s0[location] += 1
             loc += 1
-<<<<<<< HEAD
-=======
-
->>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
 
             if np.all((s0 == s1)):
                 break
             
     return tuple(output)
 
-<<<<<<< HEAD
-=======
-
-#test states
-Mine.three_dim = False
-s0 = (0, 1, 2, 3, 0)
-s1 = (3, 2, 3, 4, 3)
-
-# Mine.three_dim = True
-# s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
-# s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
-
-# print(find_action_sequence(s0,s1))
-
-
->>>>>>> 865788039bc247d5d426c87411284cfa6ae415ff
