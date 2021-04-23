@@ -635,37 +635,32 @@ def find_action_sequence(s0, s1):
 
     s0 = np.array(s0)
     s1 = np.array(s1)
-
-    Mine.x_len = len(s0) #temporary for testing
+    # Mine.x_len = len(s0[0]) #temporary for testing
 
     loc = 0
     output = []
+
     if Mine.three_dim: #if 3d
-        raise NotImplementedError
+        while True:
+            for i in range(len(s0)):
+                for location in range(Mine.x_len):
+                    if s0[i][location] == loc & s0[i][location] < s1[i][location]:
+                        output.append((i, location))
+                        s0[i][location] += 1
+            loc += 1
+
+            if np.all((s0 == s1)):
+                break
     else: #if 2d
-        while not (np.all((s0 == s1))):
-            overallTruTru = np.all((s0 == s1))
-            arrayTruTru = s0 == s1
-            # print(s0)
+        while True:
             for location in range(Mine.x_len):
                 if s0[location] == loc & s0[location] < s1[location]:
                     output.append((location, ))
                     s0[location] += 1
             loc += 1
 
-
+            if np.all((s0 == s1)):
+                break
+            
     return tuple(output)
-
-
-#test states
-Mine.three_dim = False
-s0 = (0, 1, 2, 3, 0)
-s1 = (3, 2, 3, 4, 3)
-
-# Mine.three_dim = True
-# s0 = ((1, 1, 0, 0, 0), (0, 1, 0, 0))
-# s1 = ((2, 1, 1, 1), (1, 1, 0, 1))
-
-# print(find_action_sequence(s0,s1))
-
 
