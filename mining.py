@@ -271,7 +271,8 @@ class Mine(search.Problem):
     def at_bottom(self, state, action_loc):
         """Check if the state is at the bottom of the mine for the given action.
         Returns a bool containing the result of this test."""
-        return (state[action_loc] < self.len_z)
+        a = state[action_loc]
+        return (a < self.len_z)
 
 
     def actions(self, state):
@@ -295,23 +296,13 @@ class Mine(search.Problem):
 
         ####################### Inserting code here! #######################
         state_indexs = self.state_indexes()
-        if self.three_dim:
-            a = 1 #cant be empty
-            state[1, 1] = 2
-        else:
-            a = 1 # cant be empty
-            # state[1] = 1  # test is_dangerous
-            state[2] = 1  # test is_dangerous
-            # state[4] = 1  # test is_dangerous
-            state[3] = 1  # test is_dangerous
-            state[0] = 1  # test is_dangerous
 
         for loc in state_indexs:
             action_loc = tuple([loc])
             if(self.three_dim):
                 action_loc = tuple([loc[0], loc[1]])
             if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
-                yield tuple([loc])
+                yield action_loc
 
         ####################### Inserting code here! #######################
 
@@ -398,6 +389,8 @@ class Mine(search.Problem):
         
         No loops needed in the implementation!        
         '''
+
+
         # convert to np.array in order to use tuple addressing
         # state[loc]   where loc is a tuple
         state = np.array(state)
@@ -466,19 +459,27 @@ class Mine(search.Problem):
 
     # ========================  Class Mine  ==================================
 
-@functools.lru_cache(maxsize=None)
-def dp_value(state, action):
+# @functools.lru_cache(maxsize=4**16)
+# def dp_value(state, action):
+#
+#     # new_state = Mine.result(state, action)
+#     #
+#     # Current_node_payoff = Mine.payoff(new_state, action)
+#     #
+#     # started = state > 0
+#     # if (np.any(started == True) != True):
+#     #     return 0
+#     #
+#     # actions  = Mine.actions(new_state)
+#     #
+#     # if (actions == None):
+#     #     return 1 #fill in with retun needed valies ie payoff
+#     # else:
+#     #     for a in actions:
+#     #         dp_value(new_state, action)
+#     #
+#     # return #comparision between recived node and current return one with best
 
-    new_state = Mine.result(state, action)
-
-    Current_node_payoff = Mine.payoff(new_state, action)
-
-    started = state > 0
-    if (np.any(started == True) != True):
-        return 0
-
-    actions = Mine.actions()
-    return
 
 def search_dp_dig_plan(mine):
     '''
@@ -496,16 +497,27 @@ def search_dp_dig_plan(mine):
     -------
     best_payoff, best_action_list, best_final_state
 
-    '''
-    raise NotImplementedError
+    ''' # priority frontier order by whats left in colum(uper)
 
-    # res_DP = search.depth_first_tree_search(mine)
-    # print(res_DP)
-    state = mine.initial
-    for action in Mine.actions(mine, state):
-        print(dp_value(mine, state, action))
-    return 1
+    @functools.lru_cache(maxsize=4 ** 16)
+    def search_rec(state):
+        best_payoff = mine.payoff(state)
+        best_action_list = []
+        best_final_state = state
 
+        for child_action in mine.actions(state):
+            child_state = mine.result(state, tuple(child_action))
+            child_payoff, child_action_list, child_final_state = search_rec(child_state)
+
+            if (child_payoff > best_payoff):
+                best_payoff = child_payoff
+                best_action_list =  list(child_action) + list(child_action_list)
+                best_final_state = child_final_state
+        return best_payoff, best_action_list, best_final_state
+
+    a = tuple(mine.initial)
+    return search_rec(convert_to_tuple(mine.initial))
+    #return search_rec(tuple(mine.initial))
 
 def search_bb_dig_plan(mine):
     '''
@@ -546,7 +558,9 @@ def search_bb_dig_plan(mine):
     #                 del frontier[child] # delete the incumbent node
     #                 frontier.append(child) #
     # return None
-    
+
+    #frontier = priority queue
+
     def b(state): # Return upper bound for the state
         pass
 
