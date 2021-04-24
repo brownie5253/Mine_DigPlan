@@ -629,23 +629,16 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
-
-
-
+    
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
+    def find_sequence_3d(s0, s1, width):
+        loc = 0
+        output = []
 
-    s0 = np.array(s0)
-    s1 = np.array(s1)
-    # Mine.x_len = len(s0[0]) #temporary for testing
-
-    loc = 0
-    output = []
-
-    if Mine.three_dim: #if 3d
         while True:
-            for i in range(len(s0)): #loop through each "slice" of the 3d mine
-                for location in range(Mine.x_len): 
+            for i in range(width): #loop through each "slice" of the 3d mine
+                for location in range(len(s0[0])): 
                     if s0[i][location] == loc & s0[i][location] < s1[i][location]: #if current position is at the current level, and is less than the final position
                         output.append((i, location))
                         s0[i][location] += 1
@@ -654,16 +647,9 @@ def find_action_sequence(s0, s1):
             if np.all((s0 == s1)):
                 break
 
+        return output
+
+    if Mine.three_dim: #if 3d
+        return tuple(find_sequence_3d(np.array(s0), np.array(s1), len(s0)))
     else: #if 2d
-        while True:
-            for location in range(Mine.x_len):
-                if s0[location] == loc & s0[location] < s1[location]:
-                    output.append((location, ))
-                    s0[location] += 1
-            loc += 1
-
-            if np.all((s0 == s1)):
-                break
-            
-    return tuple(output)
-
+        return tuple(find_sequence_3d(np.array([s0]), np.array([s1]), 1))
