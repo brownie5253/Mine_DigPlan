@@ -114,12 +114,13 @@ def test_2D_search_dig_plan():
 
     my_underground = some_2d_underground_1
 
-    mine = Mine(my_underground)
-    # mine.initial += 0
+    # mine = Mine(my_underground)
+    # #mine.initial += 0
     # # mine.initial = np.array([4, 3, 2, 3, 3])
     # mine.console_display()
     # print("Initial:")
-    # print(mine.initial)
+    # a = mine.initial
+    # print(a)
     # # print(mine.surface_neigbhours((2,)))
     # print("Cumsum:")
     # print(mine.cumsum_mine)
@@ -128,10 +129,9 @@ def test_2D_search_dig_plan():
     # print("Payoff:")
     # print(mine.payoff(mine.initial))
     # print("Actions:")
-    # for a in mine.actions(mine.initial):
+    # g = mine.initial
+    # for a in mine.actions(g):
     #     print(a)
-
-
 
     # print(my_underground.__repr__())
 
@@ -164,8 +164,8 @@ def test_3D_search_dig_plan():
     my_underground = some_3d_underground_1
 
     # COMMENTED OUT TEMPORARILY:
-    mine = Mine(my_underground)
-    # mine.initial += 0
+    # mine = Mine(my_underground)
+    # # mine.initial += 1
     # # mine.initial = np.array([4, 3, 2, 3, 3])
     # mine.console_display()
     # print("Initial:")
@@ -180,18 +180,19 @@ def test_3D_search_dig_plan():
     # print("Actions:")
     # for a in mine.actions(mine.initial):
     #     print(a)
+    # print('yo yo')
 
 
 
-    # print('-------------- DP computations -------------- ')
-    # tic = time.time()
-    # best_payoff, best_a_list, best_final_state = search_dp_dig_plan(mine)
-    # toc = time.time()
-    # print('DP Best payoff ', best_payoff)
-    # print('DP Best final state ', best_final_state)
-    # print('DP action list ', best_a_list)
-    # print('DP Computation took {} seconds\n'.format(toc - tic))
-
+    print('-------------- DP computations -------------- ')
+    tic = time.time()
+    best_payoff, best_a_list, best_final_state = search_dp_dig_plan(mine)
+    toc = time.time()
+    print('DP Best payoff ', best_payoff)
+    print('DP Best final state ', best_final_state)
+    print('DP action list ', best_a_list)
+    print('DP Computation took {} seconds\n'.format(toc - tic))
+'''
     print('-------------- BB computations -------------- ')
     tic = time.time()
     best_payoff, best_a_list, best_final_state = search_bb_dig_plan(mine)

@@ -453,28 +453,6 @@ class Mine(search.Problem):
 
     # ========================  Class Mine  ==================================
 
-# @functools.lru_cache(maxsize=4**16)
-# def dp_value(state, action):
-#
-#     # new_state = Mine.result(state, action)
-#     #
-#     # Current_node_payoff = Mine.payoff(new_state, action)
-#     #
-#     # started = state > 0
-#     # if (np.any(started == True) != True):
-#     #     return 0
-#     #
-#     # actions  = Mine.actions(new_state)
-#     #
-#     # if (actions == None):
-#     #     return 1 #fill in with retun needed valies ie payoff
-#     # else:
-#     #     for a in actions:
-#     #         dp_value(new_state, action)
-#     #
-#     # return #comparision between recived node and current return one with best
-
-
 def search_dp_dig_plan(mine):
     '''
     Search using Dynamic Programming the most profitable sequence of 
@@ -491,9 +469,9 @@ def search_dp_dig_plan(mine):
     -------
     best_payoff, best_action_list, best_final_state
 
-    ''' # priority frontier order by whats left in colum(uper)
+    '''
 
-    @functools.lru_cache(maxsize=4 ** 16)
+    @functools.lru_cache(maxsize=None)
     def search_rec(state):
         best_payoff = mine.payoff(state)
         best_action_list = []
@@ -505,12 +483,14 @@ def search_dp_dig_plan(mine):
 
             if (child_payoff > best_payoff):
                 best_payoff = child_payoff
-                best_action_list =  list(child_action) + list(child_action_list)
+                best_action_list =  list([child_action]) + child_action_list
                 best_final_state = child_final_state
         return best_payoff, best_action_list, best_final_state
 
-    a = tuple(mine.initial)
-    return search_rec(convert_to_tuple(mine.initial))
+    print(search_rec.cache_info())
+    a,b,c = search_rec(convert_to_tuple(mine.initial))
+    print(search_rec.cache_info())
+    return a,b,c
     #return search_rec(tuple(mine.initial))
 
 def search_bb_dig_plan(mine):
