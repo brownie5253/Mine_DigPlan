@@ -113,8 +113,8 @@ def test_2D_search_dig_plan():
     # my_underground = np.random.randn(x_len, z_len) + some_neg_bias
 
     my_underground = some_2d_underground_1
+    mine = Mine(my_underground)
 
-    # mine = Mine(my_underground)
     # #mine.initial += 0
     # # mine.initial = np.array([4, 3, 2, 3, 3])
     # mine.console_display()
@@ -162,9 +162,9 @@ def test_3D_search_dig_plan():
     # my_underground = np.random.randn(x_len,y_len,z_len) + some_neg_bias
 
     my_underground = some_3d_underground_1
+    mine = Mine(my_underground)
 
     # COMMENTED OUT TEMPORARILY:
-    # mine = Mine(my_underground)
     # # mine.initial += 1
     # # mine.initial = np.array([4, 3, 2, 3, 3])
     # mine.console_display()
@@ -192,7 +192,7 @@ def test_3D_search_dig_plan():
     print('DP Best final state ', best_final_state)
     print('DP action list ', best_a_list)
     print('DP Computation took {} seconds\n'.format(toc - tic))
-'''
+
     print('-------------- BB computations -------------- ')
     tic = time.time()
     best_payoff, best_a_list, best_final_state = search_bb_dig_plan(mine)

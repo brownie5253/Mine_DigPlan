@@ -510,7 +510,7 @@ def search_bb_dig_plan(mine):
 
     '''
 
-    @functools.lru_cache(maxsize=4 ** 16) 
+    @functools.lru_cache(maxsize=None) 
     def optimistic_payoff(state): 
         """Returns the best possible payoff for a node state, ignoring slope constraint."""
         ### Ideally need to redo this with array indexing if possible ###
@@ -534,11 +534,13 @@ def search_bb_dig_plan(mine):
                     max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x]), 0))
         
         return np.sum(max_cumsum)
-        
-    node = search.Node(mine.initial)
+
+    print(optimistic_payoff.cache_info()) # Cache Info 
+
+    node = search.Node(mine.initial) 
     opt_pay = lambda x : optimistic_payoff(convert_to_tuple(x.state)) # f for Priority Queue will be the best optimistic payoff found
-    # frontier = search.PriorityQueue('max',opt_pay)
-    frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
+    frontier = search.PriorityQueue('max',opt_pay) # Use prio queue to explore best optimistic nodes first
+    # frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
     frontier.append(node) # append first node
 
     # Initialise values for best node
@@ -573,6 +575,8 @@ def search_bb_dig_plan(mine):
 
     best_action_list = best_node.solution()
     best_final_state = convert_to_tuple(best_node.state)
+
+    print(optimistic_payoff.cache_info()) # Cache Info
 
     return best_payoff, best_action_list, best_final_state
 
