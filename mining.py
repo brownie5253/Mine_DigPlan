@@ -537,10 +537,10 @@ def search_bb_dig_plan(mine):
 
     print(optimistic_payoff.cache_info()) # Cache Info 
 
-    node = search.Node(mine.initial) 
+    node = search.Node(convert_to_tuple(mine.initial)) 
     opt_pay = lambda x : optimistic_payoff(convert_to_tuple(x.state)) # f for Priority Queue will be the best optimistic payoff found
-    frontier = search.PriorityQueue('max',opt_pay) # Use prio queue to explore best optimistic nodes first
-    # frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
+    # frontier = search.PriorityQueue('max',opt_pay) # Use prio queue to explore best optimistic nodes first
+    frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
     frontier.append(node) # append first node
 
     # Initialise values for best node
@@ -563,10 +563,12 @@ def search_bb_dig_plan(mine):
             best_node = node
             best_payoff = node_payoff
 
-        # # # Test statements:
-        # print(node.state)
-        # print(opt_pay(node))
-        # print(mine.payoff(node.state))
+        # # # Debugging:
+        # print('State:    ', node.state)
+        # print('Best Pay: ', best_payoff)
+        # print('Opt Pay:  ', opt_pay(node))
+        # print('Payoff:   ', mine.payoff(node.state))
+        # print()
 
         for child in node.expand(mine):
             # check that child has not been added to frontier and best payoff is not worse than current payoff
