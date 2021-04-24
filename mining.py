@@ -405,17 +405,14 @@ class Mine(search.Problem):
          # for x in z_Locs_temp.shape(0):
          #    for y in z_Locs_temp.shape(10):
 
+
+
         # 3D case
         if self.three_dim:
-            x_Locs = []
-            # y_Locs = np.arange(self.len_y)
-            y_Locs = []
-            z_Locs = []
-            for index in range(len(state_indexes)):
-                x_Locs.append([state_indexes[index][0]])
-                y_Locs.append([state_indexes[index][1]])
-                z_Locs.append([z_Locs_temp[tuple(state_indexes[index])]])
-
+            state_indexes = np.array(state_indexes)
+            x_Locs = state_indexes[:,0]
+            y_Locs = state_indexes[:,1]
+            z_Locs = np.concatenate(z_Locs_temp).ravel().tolist()
             cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
