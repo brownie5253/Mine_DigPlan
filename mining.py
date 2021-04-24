@@ -266,7 +266,7 @@ class Mine(search.Problem):
             # state[3] = 1  # test is_dangerous
             result = convert_to_list(x_Locs)
 
-        return convert_to_tuple(result)
+        return result
 
     def at_bottom(self, state, action_loc):
         """Check if the state is at the bottom of the mine for the given action.
@@ -298,9 +298,11 @@ class Mine(search.Problem):
         state_indexs = self.state_indexes()
 
         for loc in state_indexs:
-            if (self.is_dangerous(self.result(state,[loc])) == False):
-                if(self.at_bottom(state, loc)):
-                    yield tuple([loc])
+            action_loc = tuple([loc])
+            if(self.three_dim):
+                action_loc = tuple([loc[0], loc[1]])
+            if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
+                yield action_loc
 
         ####################### Inserting code here! #######################
 
