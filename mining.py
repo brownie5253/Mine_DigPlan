@@ -405,17 +405,14 @@ class Mine(search.Problem):
          # for x in z_Locs_temp.shape(0):
          #    for y in z_Locs_temp.shape(10):
 
+
+
         # 3D case
         if self.three_dim:
-            x_Locs = []
-            # y_Locs = np.arange(self.len_y)
-            y_Locs = []
-            z_Locs = []
-            for index in range(len(state_indexes)):
-                x_Locs.append([state_indexes[index][0]])
-                y_Locs.append([state_indexes[index][1]])
-                z_Locs.append([z_Locs_temp[tuple(state_indexes[index])]])
-
+            state_indexes = np.array(state_indexes)
+            x_Locs = state_indexes[:,0]
+            y_Locs = state_indexes[:,1]
+            z_Locs = np.concatenate(z_Locs_temp).ravel().tolist()
             cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
@@ -558,18 +555,30 @@ def search_bb_dig_plan(mine):
     #                 del frontier[child] # delete the incumbent node
     #                 frontier.append(child) #
     # return None
+    
+    def best_payoff(node): 
+        """Returns the best possible payoff for a node, ignoring slope constraint."""
+        state = np.where(node.state==0, node.state, node.state-1) # state - 1, with a min of 0
+        max_cumsum = np.empty(0) # empty array to hold best values in cumsum
 
-    #frontier = priority queue
+        if mine.three_dim: # 3D Case
+            for x,state_row in state:
+                for y,z in enumerate(state_row):
+                    max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,y,z:]))
+            return np.sum(max_cumsum)
 
-    def b(state): # Return upper bound for the state
-        pass
+        else: # 2D Case
+            for x,z in enumerate(state):
+                max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,z:]))
+            return np.sum(max_cumsum)
+        
 
     node = search.Node(mine.initial)
     f = lambda x : mine.payoff(x.state) # Payoff is the lower bound of the search, as it is the total payoff of the current state
     frontier = search.PriorityQueue('max',f)
     frontier.append(node)
 
-    # Store best lower bound found
+    # Store best node found
     best_node = node
 
     while frontier:
@@ -580,32 +589,33 @@ def search_bb_dig_plan(mine):
 
         # test goes here
         for child in node.expand(mine):
-            if child not in frontier:
+            # check that child has not been added to frontier and best payoff is not worse than current payoff
+            if child not in frontier and mine.payoff(node.state) < best_payoff(child): 
                 frontier.append(child)
             else:
-                if f(child) > frontier[child]:
+                if f(child) > frontier[child]: # <----- probably delete this
                     del frontier[child] # delete the incumbent node
                     best_node = child # update best node
                     frontier.append(child)
 
-    return best_node.state, best_node.path
+    return best_payoff(best_node), best_node.path, best_node.state
 
 # search_bb_mem = lru_cache(maxsize=20000)(search_bb_dig_plan)
 
 # Debugging:
-# some_2d_underground_1 = np.array([
-#     [-0.814, 0.637, 1.824, -0.563],
-#     [0.559, -0.234, -0.366, 0.07],
-#     [0.175, -0.284, 0.026, -0.316],
-#     [0.212, 0.088, 0.304, 0.604],
-#     [-1.231, 1.558, -0.467, -0.371]])
-# mine = Mine(some_2d_underground_1)
+some_2d_underground_1 = np.array([
+    [-0.814, 0.637, 1.824, -0.563],
+    [0.559, -0.234, -0.366, 0.07],
+    [0.175, -0.284, 0.026, -0.316],
+    [0.212, 0.088, 0.304, 0.604],
+    [-1.231, 1.558, -0.467, -0.371]])
+mine = Mine(some_2d_underground_1)
 
-# tic = time.time()
-# # search_bb_mem(mine)
-# search_bb_dig_plan(mine)
-# toc = time.time()
-# print('BB Computation took {} seconds'.format(toc-tic))
+tic = time.time()
+# search_bb_mem(mine)
+search_bb_dig_plan(mine)
+toc = time.time()
+print('BB Computation took {} seconds'.format(toc-tic))
 
     
 
