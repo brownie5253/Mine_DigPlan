@@ -629,7 +629,7 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
-    
+
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
     def find_sequence_3d(s0, s1, width):
@@ -641,14 +641,12 @@ def find_action_sequence(s0, s1):
                 for location in range(len(s0[0])): 
                     if s0[i][location] == loc & s0[i][location] < s1[i][location]: #if current position is at the current level, and is less than the final position
                         output.append((i, location))
-                        s0[i][location] += 1
+                        s0[i][location] += 1    
             loc += 1
 
             if np.all((s0 == s1)):
-                break
-
-        return output
-
+                return output
+            
     if Mine.three_dim: #if 3d
         return tuple(find_sequence_3d(np.array(s0), np.array(s1), len(s0)))
     else: #if 2d
