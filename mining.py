@@ -271,7 +271,8 @@ class Mine(search.Problem):
     def at_bottom(self, state, action_loc):
         """Check if the state is at the bottom of the mine for the given action.
         Returns a bool containing the result of this test."""
-        return (state[action_loc] < self.len_z)
+        a = state[action_loc]
+        return (a < self.len_z)
 
 
     def actions(self, state):
@@ -295,23 +296,13 @@ class Mine(search.Problem):
 
         ####################### Inserting code here! #######################
         state_indexs = self.state_indexes()
-        if self.three_dim:
-            a = 1 #cant be empty
-            state[1, 1] = 2
-        else:
-            a = 1 # cant be empty
-            # state[1] = 1  # test is_dangerous
-            state[2] = 1  # test is_dangerous
-            # state[4] = 1  # test is_dangerous
-            state[3] = 1  # test is_dangerous
-            state[0] = 1  # test is_dangerous
 
         for loc in state_indexs:
             action_loc = tuple([loc])
             if(self.three_dim):
                 action_loc = tuple([loc[0], loc[1]])
             if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
-                yield tuple([loc])
+                yield action_loc
 
         ####################### Inserting code here! #######################
 
@@ -398,6 +389,8 @@ class Mine(search.Problem):
         
         No loops needed in the implementation!        
         '''
+
+
         # convert to np.array in order to use tuple addressing
         # state[loc]   where loc is a tuple
         state = np.array(state)
@@ -412,17 +405,14 @@ class Mine(search.Problem):
          # for x in z_Locs_temp.shape(0):
          #    for y in z_Locs_temp.shape(10):
 
+
+
         # 3D case
         if self.three_dim:
-            x_Locs = []
-            # y_Locs = np.arange(self.len_y)
-            y_Locs = []
-            z_Locs = []
-            for index in range(len(state_indexes)):
-                x_Locs.append([state_indexes[index][0]])
-                y_Locs.append([state_indexes[index][1]])
-                z_Locs.append([z_Locs_temp[tuple(state_indexes[index])]])
-
+            state_indexes = np.array(state_indexes)
+            x_Locs = state_indexes[:,0]
+            y_Locs = state_indexes[:,1]
+            z_Locs = np.concatenate(z_Locs_temp).ravel().tolist()
             cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
 
         #2D case
@@ -466,19 +456,27 @@ class Mine(search.Problem):
 
     # ========================  Class Mine  ==================================
 
-@functools.lru_cache(maxsize=None)
-def dp_value(state, action):
+# @functools.lru_cache(maxsize=4**16)
+# def dp_value(state, action):
+#
+#     # new_state = Mine.result(state, action)
+#     #
+#     # Current_node_payoff = Mine.payoff(new_state, action)
+#     #
+#     # started = state > 0
+#     # if (np.any(started == True) != True):
+#     #     return 0
+#     #
+#     # actions  = Mine.actions(new_state)
+#     #
+#     # if (actions == None):
+#     #     return 1 #fill in with retun needed valies ie payoff
+#     # else:
+#     #     for a in actions:
+#     #         dp_value(new_state, action)
+#     #
+#     # return #comparision between recived node and current return one with best
 
-    new_state = Mine.result(state, action)
-
-    Current_node_payoff = Mine.payoff(new_state, action)
-
-    started = state > 0
-    if (np.any(started == True) != True):
-        return 0
-
-    actions = Mine.actions()
-    return
 
 def search_dp_dig_plan(mine):
     '''
@@ -496,16 +494,27 @@ def search_dp_dig_plan(mine):
     -------
     best_payoff, best_action_list, best_final_state
 
-    '''
-    raise NotImplementedError
+    ''' # priority frontier order by whats left in colum(uper)
 
-    # res_DP = search.depth_first_tree_search(mine)
-    # print(res_DP)
-    state = mine.initial
-    for action in Mine.actions(mine, state):
-        print(dp_value(mine, state, action))
-    return 1
+    @functools.lru_cache(maxsize=4 ** 16)
+    def search_rec(state):
+        best_payoff = mine.payoff(state)
+        best_action_list = []
+        best_final_state = state
 
+        for child_action in mine.actions(state):
+            child_state = mine.result(state, tuple(child_action))
+            child_payoff, child_action_list, child_final_state = search_rec(child_state)
+
+            if (child_payoff > best_payoff):
+                best_payoff = child_payoff
+                best_action_list =  list(child_action) + list(child_action_list)
+                best_final_state = child_final_state
+        return best_payoff, best_action_list, best_final_state
+
+    a = tuple(mine.initial)
+    return search_rec(convert_to_tuple(mine.initial))
+    #return search_rec(tuple(mine.initial))
 
 def search_bb_dig_plan(mine):
     '''
@@ -631,39 +640,24 @@ def find_action_sequence(s0, s1):
 
     '''
 
-
-
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
+    def find_sequence_3d(s0, s1, width):
+        loc = 0
+        output = []
 
-    s0 = np.array(s0)
-    s1 = np.array(s1)
-    # Mine.x_len = len(s0[0]) #temporary for testing
-
-    loc = 0
-    output = []
-
-    if Mine.three_dim: #if 3d
         while True:
-            for i in range(len(s0)):
-                for location in range(Mine.x_len):
-                    if s0[i][location] == loc & s0[i][location] < s1[i][location]:
+            for i in range(width): #loop through each "slice" of the 3d mine
+                for location in range(len(s0[0])): 
+                    if s0[i][location] == loc & s0[i][location] < s1[i][location]: #if current position is at the current level, and is less than the final position
                         output.append((i, location))
-                        s0[i][location] += 1
+                        s0[i][location] += 1    
             loc += 1
 
             if np.all((s0 == s1)):
-                break
-    else: #if 2d
-        while True:
-            for location in range(Mine.x_len):
-                if s0[location] == loc & s0[location] < s1[location]:
-                    output.append((location, ))
-                    s0[location] += 1
-            loc += 1
-
-            if np.all((s0 == s1)):
-                break
+                return output
             
-    return tuple(output)
-
+    if Mine.three_dim: #if 3d
+        return tuple(find_sequence_3d(np.array(s0), np.array(s1), len(s0)))
+    else: #if 2d
+        return tuple(find_sequence_3d(np.array([s0]), np.array([s1]), 1))
