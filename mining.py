@@ -630,15 +630,16 @@ def find_action_sequence(s0, s1):
 
     if Mine.three_dim: #if 3d
         while True:
-            for i in range(len(s0)):
-                for location in range(Mine.x_len):
-                    if s0[i][location] == loc & s0[i][location] < s1[i][location]:
+            for i in range(len(s0)): #loop through each "slice" of the 3d mine
+                for location in range(Mine.x_len): 
+                    if s0[i][location] == loc & s0[i][location] < s1[i][location]: #if current position is at the current level, and is less than the final position
                         output.append((i, location))
                         s0[i][location] += 1
             loc += 1
 
             if np.all((s0 == s1)):
                 break
+
     else: #if 2d
         while True:
             for location in range(Mine.x_len):
