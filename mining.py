@@ -50,9 +50,6 @@ An action is represented by the surface location where the dig takes place.
 
 
 """
-import time
-from functools import lru_cache
-
 import numpy as np
 import matplotlib.pyplot as plt
 # This import registers the 3D projection, but is otherwise unused.
@@ -532,94 +529,72 @@ def search_bb_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
-    # Best first graph search (for reference)
-    # node = Node(problem.initial)
-    # if problem.goal_test(node.state):
-    #     return node
-    # frontier = PriorityQueue(f=f)
-    # frontier.append(node)
-    # explored = set() # set of states
-    # while frontier:
-    #     node = frontier.pop()
-    #     if problem.goal_test(node.state):
-    #         return node
-    #     explored.add(node.state)
-    #     for child in node.expand(problem):
-    #         if child.state not in explored and child not in frontier:
-    #             frontier.append(child)
-    #         elif child in frontier:
-    #             # frontier[child] is the f value of the
-    #             # incumbent node that shares the same state as
-    #             # the node child.  Read implementation of PriorityQueue
-    #             if f(child) < frontier[child]:
-    #                 del frontier[child] # delete the incumbent node
-    #                 frontier.append(child) #
-    # return None
-    
-    def best_payoff(node): 
-        """Returns the best possible payoff for a node, ignoring slope constraint."""
-        state = np.where(node.state==0, node.state, node.state-1) # state - 1, with a min of 0
+
+    @functools.lru_cache(maxsize=4 ** 16) 
+    def optimistic_payoff(state): 
+        """Returns the best possible payoff for a node state, ignoring slope constraint."""
+        ### Ideally need to redo this with array indexing if possible ###
+
+        state = np.array(state) - 1
         max_cumsum = np.empty(0) # empty array to hold best values in cumsum
 
         if mine.three_dim: # 3D Case
-            for x,state_row in state:
+            for x,state_row in enumerate(state):
                 for y,z in enumerate(state_row):
-                    max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,y,z:]))
-            return np.sum(max_cumsum)
+                    if z > -1:
+                        max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,y,z:]))
+                    else: # case where there is the option to not dig at all
+                        max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x,y]), 0))
 
         else: # 2D Case
             for x,z in enumerate(state):
-                max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,z:]))
-            return np.sum(max_cumsum)
+                if z > -1:
+                    max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,z:]))
+                else: # case where there is the option to not dig at all
+                    max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x]), 0))
         
-
+        return np.sum(max_cumsum)
+        
     node = search.Node(mine.initial)
-    f = lambda x : mine.payoff(x.state) # Payoff is the lower bound of the search, as it is the total payoff of the current state
-    frontier = search.PriorityQueue('max',f)
-    frontier.append(node)
+    opt_pay = lambda x : optimistic_payoff(convert_to_tuple(x.state)) # f for Priority Queue will be the best optimistic payoff found
+    # frontier = search.PriorityQueue('max',opt_pay)
+    frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
+    frontier.append(node) # append first node
 
-    # Store best node found
+    # Initialise values for best node
     best_node = node
+    best_payoff = mine.payoff(best_node.state)
+    best_action_list = []
+    best_final_state = best_node.state
 
     while frontier:
         node = frontier.pop()
-        # Test statements:
-        # print(node.state)
-        # print(f(node))
+        node_payoff = mine.payoff(node.state)
 
-        # test goes here
+        # Check if node is obsolete by now (not needed for Prio queue, minimal gain anyways)
+        # optimistic_node = opt_pay(node)
+        # if optimistic_node <= best_payoff:
+        #     continue
+        
+        # Store best node found
+        if node_payoff >= best_payoff:
+            best_node = node
+            best_payoff = node_payoff
+
+        # # # Test statements:
+        # print(node.state)
+        # print(opt_pay(node))
+        # print(mine.payoff(node.state))
+
         for child in node.expand(mine):
             # check that child has not been added to frontier and best payoff is not worse than current payoff
-            if child not in frontier and mine.payoff(node.state) < best_payoff(child): 
+            if child not in frontier and opt_pay(child) > best_payoff: 
                 frontier.append(child)
-            else:
-                if f(child) > frontier[child]: # <----- probably delete this
-                    del frontier[child] # delete the incumbent node
-                    best_node = child # update best node
-                    frontier.append(child)
 
-    return best_payoff(best_node), best_node.path, best_node.state
+    best_action_list = best_node.solution()
+    best_final_state = convert_to_tuple(best_node.state)
 
-# search_bb_mem = lru_cache(maxsize=20000)(search_bb_dig_plan)
-
-# Debugging:
-some_2d_underground_1 = np.array([
-    [-0.814, 0.637, 1.824, -0.563],
-    [0.559, -0.234, -0.366, 0.07],
-    [0.175, -0.284, 0.026, -0.316],
-    [0.212, 0.088, 0.304, 0.604],
-    [-1.231, 1.558, -0.467, -0.371]])
-mine = Mine(some_2d_underground_1)
-
-tic = time.time()
-# search_bb_mem(mine)
-search_bb_dig_plan(mine)
-toc = time.time()
-print('BB Computation took {} seconds'.format(toc-tic))
-
-    
-
-
+    return best_payoff, best_action_list, best_final_state
 
 def find_action_sequence(s0, s1):
     '''
