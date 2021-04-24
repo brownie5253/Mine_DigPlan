@@ -515,7 +515,7 @@ def search_bb_dig_plan(mine):
         """Returns the best possible payoff for a node state, ignoring slope constraint."""
         ### Ideally need to redo this with array indexing if possible ###
 
-        state = np.array(state) - 1
+        state = np.array(state) - 1 # subtract 1 to correctly index the cumsum array
         max_cumsum = np.empty(0) # empty array to hold best values in cumsum
 
         if mine.three_dim: # 3D Case
@@ -523,7 +523,7 @@ def search_bb_dig_plan(mine):
                 for y,z in enumerate(state_row):
                     if z > -1:
                         max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,y,z:]))
-                    else: # case where there is the option to not dig at all
+                    else: # case where there is the option to not dig at all (0 payoff is an option)
                         max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x,y]), 0))
 
         else: # 2D Case
@@ -538,7 +538,7 @@ def search_bb_dig_plan(mine):
     print(optimistic_payoff.cache_info()) # Cache Info 
 
     node = search.Node(convert_to_tuple(mine.initial)) 
-    opt_pay = lambda x : optimistic_payoff(convert_to_tuple(x.state)) # f for Priority Queue will be the best optimistic payoff found
+    opt_pay = lambda x : optimistic_payoff(convert_to_tuple(x.state)) # f for Priority Queue will be the optimistic payoff
     # frontier = search.PriorityQueue('max',opt_pay) # Use prio queue to explore best optimistic nodes first
     frontier = search.FIFOQueue() # FIFO is faster, although likely due to optimistic_payoff(s) being slow
     frontier.append(node) # append first node
@@ -553,7 +553,7 @@ def search_bb_dig_plan(mine):
         node = frontier.pop()
         node_payoff = mine.payoff(node.state)
 
-        # Check if node is obsolete by now (not needed for Prio queue, minimal gain anyways)
+        # Check if node is obsolete by now (not needed for Prio queue, minimal gain anyways with cache enabled)
         # optimistic_node = opt_pay(node)
         # if optimistic_node <= best_payoff:
         #     continue
@@ -571,7 +571,7 @@ def search_bb_dig_plan(mine):
         # print()
 
         for child in node.expand(mine):
-            # check that child has not been added to frontier and best payoff is not worse than current payoff
+            # check that child has not been added to frontier and optimistic payoff is not worse than current payoff
             if child not in frontier and opt_pay(child) > best_payoff: 
                 frontier.append(child)
 
@@ -600,6 +600,10 @@ def find_action_sequence(s0, s1):
     A sequence of actions to go from state s0 to state s1
 
     '''
+    # safety check
+    s0 = np.array(s0)
+    s1 = np.array(s1)
+    assert(s0.ndim == s1.ndim)
 
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
@@ -618,7 +622,7 @@ def find_action_sequence(s0, s1):
             if np.all((s0 == s1)):
                 return output
             
-    if Mine.three_dim: #if 3d
+    if s0.ndim == 2: #if 3d (Mine.three_dim won't exist here)
         return tuple(find_sequence_3d(np.array(s0), np.array(s1), len(s0)))
     else: #if 2d
         return tuple(find_sequence_3d(np.array([s0]), np.array([s1]), 1))
