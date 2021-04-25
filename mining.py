@@ -182,14 +182,11 @@ class Mine(search.Problem):
         None.
 
         '''
-        # super().__init__() # call to parent class constructor not needed
 
+        # self.underground should be considered as a 'read-only' variable!
         self.underground = underground
-        # self.underground  should be considered as a 'read-only' variable!
         self.dig_tolerance = dig_tolerance
         assert underground.ndim in (2, 3)
-
-        ####################### Inserting code here! #######################    
 
         # Determine if mine is 3D or not
         if self.underground.ndim == 3:
@@ -197,13 +194,16 @@ class Mine(search.Problem):
         else:
             self.three_dim = False
 
-        self.len_z = self.underground.shape[-1] # -1 axis is always z
-        self.len_x = self.underground.shape[0] # 0 axis is always x
+        # -1 axis of underground is always z axis
+        self.len_z = self.underground.shape[-1]
+        # 0 axis of underground is always x axis
+        self.len_x = self.underground.shape[0]
 
         # 3D mine case
         if self.three_dim:
             self.len_y = self.underground.shape[1]
             self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
+
         # 2D mine case            
         else:
             self.len_y = 0
@@ -211,7 +211,6 @@ class Mine(search.Problem):
 
         self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
 
-        ####################### Inserting code here! #######################
 
     def surface_neigbhours(self, loc):
         '''
@@ -245,38 +244,50 @@ class Mine(search.Problem):
                     L.append((loc[0]+dx, loc[1]+dy))
         return L
 
+
     def state_indexes(self):
-        x_Locs = np.arange(self.len_x)
+        x_coordinates = np.arange(self.len_x)
 
         # 3D case
         if self.three_dim:
-            y_Locs = np.arange(self.len_y)
-            args = (convert_to_list(x_Locs), convert_to_list(y_Locs))
+            y_coordinates = np.arange(self.len_y)
+            args = (convert_to_list(x_coordinates), convert_to_list(y_coordinates))
             pools = [tuple(pool) for pool in args]
-            result = [[]]
+            coordinates = [[]]
             for pool in pools:
-                result = [x + [y] for x in result for y in pool]
+                coordinates = [x + [y] for x in coordinates for y in pool]
 
         # 2D case
         else:
-            # state[1] = 1 #test is_dangerous
-            # state[3] = 1  # test is_dangerous
-            result = convert_to_list(x_Locs)
+            coordinates = convert_to_list(x_coordinates)
 
-        return result
+        return coordinates
 
-    def at_bottom(self, state, action_loc):
+
+    def not_bottom(self, state, action_loc):
         """Check if the state is at the bottom of the mine for the given action.
-        Returns a bool containing the result of this test."""
-        a = state[action_loc]
-        return (a < self.len_z)
+        Returns a bool containing the result of this test.
+
+        Parameters
+        ----------
+        state :
+            represented with nested lists, tuples or a ndarray
+            state of the partially dug mine
+        action_loc :
+             int value/s contained in a tuple. Represents and x or x,y position in state
+        Returns
+        -------
+        Returns True if the current dug level is not at the bottom (z axis) of underground
+        """
+
+        return (state[action_loc] < self.len_z)
 
 
     def actions(self, state):
         '''
         Return a generator of valid actions in the given state 'state'
         An action is represented as a location. An action is deemed valid if
-        it doesn't break the dig_tolerance constraint.
+        it doesn't break the dig_tolerance constraint or is not at the bottom of the mine.
 
         Parameters
         ----------
@@ -291,18 +302,14 @@ class Mine(search.Problem):
         '''
         state = np.array(state)
 
-        ####################### Inserting code here! #######################
         state_indexs = self.state_indexes()
 
         for loc in state_indexs:
             action_loc = tuple([loc])
             if(self.three_dim):
                 action_loc = tuple([loc[0], loc[1]])
-            if (self.is_dangerous(self.result(state,action_loc)) == False and self.at_bottom(state, action_loc)):
+            if (self.is_dangerous(self.result(state,action_loc)) == False and self.not_bottom(state, action_loc)):
                 yield action_loc
-
-        ####################### Inserting code here! #######################
-
 
 
     def result(self, state, action):
@@ -383,8 +390,16 @@ class Mine(search.Problem):
         '''
         Compute and return the payoff for the given state.
         That is, the sum of the values of all the digged cells.
-        
-        No loops needed in the implementation!        
+
+        Parameters
+        ----------
+        state :
+            represented with nested lists, tuples or a ndarray
+            state of the partially dug mine
+
+        Returns
+        -------
+        An int value corresponding to the payoff
         '''
 
 
@@ -392,66 +407,64 @@ class Mine(search.Problem):
         # state[loc]   where loc is a tuple
         state = np.array(state)
 
-        ####################### Inserting code here! #######################
         state_indexes = self.state_indexes()
-
-        x_Locs = np.arange(self.len_x)  # array of indexes for all X columns
-        z_Locs_temp = state - 1  # dug level -1 as indexes would be a level too deep
-
-
-         # for x in z_Locs_temp.shape(0):
-         #    for y in z_Locs_temp.shape(10):
-
-
+        x_coordinates = np.arange(self.len_x)
+        index_adjust = 1
+        #Adjust state to make it an array of z indexes of last mined block for column
+        z_coordinates = state - index_adjust
 
         # 3D case
         if self.three_dim:
             state_indexes = np.array(state_indexes)
-            x_Locs = state_indexes[:,0]
-            y_Locs = state_indexes[:,1]
-            z_Locs = np.concatenate(z_Locs_temp).ravel().tolist()
-            cumsum_indexes = self.cumsum_mine[x_Locs, y_Locs, z_Locs]#to index multiple locs you want arrays of all x then y ect not aray of indexes with values all togeter
+            x_coordinates = state_indexes[:,0]
+            y_coordinates = state_indexes[:,1]
+            z_coordinates = np.concatenate(z_coordinates).ravel().tolist()
+            cumsum_values = self.cumsum_mine[x_coordinates, y_coordinates, z_coordinates]
 
         #2D case
         else:
-            z_Locs = z_Locs_temp
-            cumsum_indexes = self.cumsum_mine[x_Locs, z_Locs] #for every X column index the z level corresponding to dug level in state. now have the cumsum of each loc
+            cumsum_values = self.cumsum_mine[x_coordinates, z_coordinates]
 
-        check = np.array(z_Locs) >= 0  # if the dug level in state was 0 it will now be -1 so we make it false so we can do (payoff for not dug colum)*0=0 to not affect sum
-        return np.sum((cumsum_indexes * check))  # add up cumsum values for colums actualy dug in
+        # if the dug amount in any state location was 0 it will now be -1
+        check = (np.array(z_coordinates) >= 0)
+        return np.sum((cumsum_values * check))
 
 
     def is_dangerous(self, state):
         '''
+        determines if the current state breaches the dig_tolerance amount, making it dangerous
+
+        Parameters
+        ----------
+        state :
+            represented with nested lists, tuples or a ndarray
+            state of the partially dug mine
+
+        Returns
+        -------
         Return True iff the given state breaches the dig_tolerance constraints.
-        
-        No loops needed in the implementation!
+
         '''
         # convert to np.array in order to use numpy operators
         state = np.array(state)
 
-        ####################### Inserting code here! #######################
         # 3D case
         if self.three_dim:
-            xtest = state[:, :-1] - state[:, 1:] # x axis
-            ytest = state[:-1, :] - state[1:, :] # y axis
-            dia1test = state[:-1, :-1] - state[1:, 1:] # 1st diag axis
-            dia2test = np.rot90(state)[:-1, :-1] - np.rot90(state)[1:, 1:] # 2nd diag axis
+            x_test = state[:, :-1] - state[:, 1:]
+            y_test = state[:-1, :] - state[1:, :]
+            diagonal_test_1 = state[:-1, :-1] - state[1:, 1:]
+            diagonal_test_2 = np.rot90(state)[:-1, :-1] - np.rot90(state)[1:, 1:]
 
             # Concatenate all tests and check for unacceptable tolerances
-            return(np.any(abs(np.concatenate((xtest, ytest, dia1test, dia2test),
+            return(np.any(abs(np.concatenate((x_test, y_test, diagonal_test_1, diagonal_test_2),
                                              axis=None)) > self.dig_tolerance))
         # 2D case
         else:
             # Simply check along the x axis for unacceptable tolerances
             return(np.any(abs(state[:-1] - state[1:]) > self.dig_tolerance))
 
-
-        ####################### Inserting code here! #######################   
-
-
-
     # ========================  Class Mine  ==================================
+
 
 def search_dp_dig_plan(mine):
     '''
@@ -473,25 +486,30 @@ def search_dp_dig_plan(mine):
 
     @functools.lru_cache(maxsize=None)
     def search_rec(state):
+        #Inital state of return values
         best_payoff = mine.payoff(state)
         best_action_list = []
         best_final_state = state
 
+        #Loop through each possible action of state as children states
         for child_action in mine.actions(state):
             child_state = mine.result(state, tuple(child_action))
+            #Recursivly call search_rec for child state
             child_payoff, child_action_list, child_final_state = search_rec(child_state)
 
+            #If the child of current state has better payoff, save it's returned values
             if (child_payoff > best_payoff):
                 best_payoff = child_payoff
                 best_action_list =  list([child_action]) + child_action_list
                 best_final_state = child_final_state
+
         return best_payoff, best_action_list, best_final_state
 
-    print(search_rec.cache_info())
-    a,b,c = search_rec(convert_to_tuple(mine.initial))
-    print(search_rec.cache_info())
-    return a,b,c
-    #return search_rec(tuple(mine.initial))
+    print("Before DP is run: ", search_rec.cache_info())
+    best_payoff, best_action_list, best_final_state = search_rec(convert_to_tuple(mine.initial))
+    print("After DP is run: ", search_rec.cache_info())
+
+    return best_payoff, best_action_list, best_final_state
 
 def search_bb_dig_plan(mine):
     '''
