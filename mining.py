@@ -185,6 +185,8 @@ class Mine(search.Problem):
 
         # self.underground should be considered as a 'read-only' variable!
         self.underground = underground
+
+        assert dig_tolerance >= 1, "Dig tolerance bust be greater than 0 otherwise no actions possible"
         self.dig_tolerance = dig_tolerance
         assert underground.ndim in (2, 3)
 
@@ -256,10 +258,13 @@ class Mine(search.Problem):
             coordinates = [[]]
             for pool in pools:
                 coordinates = [x + [y] for x in coordinates for y in pool]
-
+            #check if not enough coordinates
+            assert len(coordinates) == self.len_x * self.len_y, "less coordinates and there should be, state_indexes"
         # 2D case
         else:
             coordinates = convert_to_list(x_coordinates)
+            # check if not enough coordinates
+            assert len(coordinates) == self.len_x, "less coordinates and there should be, state_indexes"
 
         return coordinates
 
@@ -420,10 +425,14 @@ class Mine(search.Problem):
             y_coordinates = state_indexes[:,1]
             z_coordinates = np.concatenate(z_coordinates).ravel().tolist()
             cumsum_values = self.cumsum_mine[x_coordinates, y_coordinates, z_coordinates]
+            # check if not enough values
+            assert len(cumsum_values) == self.len_x * self.len_y, "less values and there should be, payoff"
 
         #2D case
         else:
             cumsum_values = self.cumsum_mine[x_coordinates, z_coordinates]
+            # check if not enough values
+            assert len(cumsum_values) == self.len_x, "less values and there should be, payoff"
 
         # if the dug amount in any state location was 0 it will now be -1
         check = (np.array(z_coordinates) >= 0)
@@ -494,6 +503,7 @@ def search_dp_dig_plan(mine):
         #Loop through each possible action of state as children states
         for child_action in mine.actions(state):
             child_state = mine.result(state, tuple(child_action))
+
             #Recursivly call search_rec for child state
             child_payoff, child_action_list, child_final_state = search_rec(child_state)
 
