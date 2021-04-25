@@ -5,24 +5,6 @@ Created on Wed Feb  3 17:56:47 2021
 
 @author: frederic
 
-# =============================================================================
-#                                  CHANGELOG:
-#   - Fixed Mine class, input arrays will be formatted as (x, z) for 2D and 
-#     (x, y, z) for 3D. - Ethan
-#   - States are now correctly working, e.g. doing state(action) will now find
-#     the correct location in the mine. - Ethan
-#   - Added variable self.three_dim, set to True if mine is 3D - Ethan
-#   - Implemented Is_Dangerous function, seems to be working correctly - Ethan
-#   - changed code in init from 0 to -2 for x_len as in 3d mind x is the second index and -2 for 2d mine will index first variable - Connor
-#   - THIS A COMMENT BUT I'VE EDITED IT
-#  - Matti - for git
-# 
-#   - THIS IS ANOTHER COMMENT
-#   - I am confused
-#   Big mood
-# 
-# =============================================================================
-
 class problem with     
 
 An open-pit mine is a grid represented with a 2D or 3D numpy array. 
@@ -189,29 +171,24 @@ class Mine(search.Problem):
         assert dig_tolerance >= 1, "Dig tolerance bust be greater than 0 otherwise no actions possible"
         self.dig_tolerance = dig_tolerance
         assert underground.ndim in (2, 3)
-
+        
         # Determine if mine is 3D or not
-        if self.underground.ndim == 3:
-            self.three_dim = True
-        else:
-            self.three_dim = False
-
-        # -1 axis of underground is always z axis
-        self.len_z = self.underground.shape[-1]
-        # 0 axis of underground is always x axis
-        self.len_x = self.underground.shape[0]
+        self.three_dim = self.underground.ndim == 3        
 
         # 3D mine case
         if self.three_dim:
-            self.len_y = self.underground.shape[1]
+            self.len_x, self.len_y, self.len_z = self.underground.shape
             self.initial = np.zeros((self.len_x, self.len_y), dtype=int)
 
         # 2D mine case            
         else:
+            self.len_x, self.len_z = self.underground.shape
             self.len_y = 0
             self.initial = np.zeros(self.len_x, dtype=int)
 
-        self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=-1)
+        # -1 axis of underground is always z axis, so use that for cumsum
+        z_axis = -1
+        self.cumsum_mine = np.cumsum(self.underground, dtype=float, axis=z_axis)
 
 
     def surface_neigbhours(self, loc):
@@ -357,10 +334,6 @@ class Mine(search.Problem):
                    +str(self.underground[..., z]) for z in range(self.len_z))
 
 
-
-            return self.underground[loc[0], loc[1], :]
-
-
     @staticmethod
     def plot_state(state):
         if state.ndim==1:
@@ -404,7 +377,7 @@ class Mine(search.Problem):
 
         Returns
         -------
-        An int value corresponding to the payoff
+        A float value corresponding to the payoff
         '''
 
 
@@ -459,6 +432,7 @@ class Mine(search.Problem):
 
         # 3D case
         if self.three_dim:
+            # Use array indexing to find the differences for all 4 axis of symmetry, e.g. horizontal, vertical, diagonal
             x_test = state[:, :-1] - state[:, 1:]
             y_test = state[:-1, :] - state[1:, :]
             diagonal_test_1 = state[:-1, :-1] - state[1:, 1:]
@@ -492,7 +466,8 @@ def search_dp_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
-
+    assert isinstance(mine, Mine)
+    
     @functools.lru_cache(maxsize=None)
     def search_rec(state):
         #Inital state of return values
@@ -537,28 +512,44 @@ def search_bb_dig_plan(mine):
     best_payoff, best_action_list, best_final_state
 
     '''
+    assert isinstance(mine, Mine)
 
     @functools.lru_cache(maxsize=None) 
     def optimistic_payoff(state): 
-        """Returns the best possible payoff for a node state, ignoring slope constraint."""
-        ### Ideally need to redo this with array indexing if possible ###
+        '''
+        Returns the best potential payoff for a node state, ignoring slope constraint.
+        
+        Parameters
+        ----------
+        state :
+            represented with nested lists, tuples or a ndarray
+            state of the partially dug mine
 
-        state = np.array(state) - 1 # subtract 1 to correctly index the cumsum array
+        Returns
+        -------
+        Returns the float value of the most optimistic payoff possible from the state.
+
+        '''
+        ### Ideally need to redo this with array indexing if possible, future consideration. ###
+
+        # Adjust state to make it an array of z indexes of last mined block in the column
+        index_adjust = 1
+        state = np.array(state) - index_adjust # Safety check, ensure state is formatted as np array.
         max_cumsum = np.empty(0) # empty array to hold best values in cumsum
 
         if mine.three_dim: # 3D Case
             for x,state_row in enumerate(state):
                 for y,z in enumerate(state_row):
-                    if z > -1:
+                    if z > -index_adjust:
                         max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,y,z:]))
                     else: # case where there is the option to not dig at all (0 payoff is an option)
                         max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x,y]), 0))
 
-        else: # 2D Case
+        else: # 2D Case, same but without y axis
             for x,z in enumerate(state):
-                if z > -1:
+                if z > -index_adjust:
                     max_cumsum = np.append(max_cumsum, np.amax(mine.cumsum_mine[x,z:]))
-                else: # case where there is the option to not dig at all
+                else: 
                     max_cumsum = np.append(max_cumsum, max(np.amax(mine.cumsum_mine[x]), 0))
         
         return np.sum(max_cumsum)
@@ -581,22 +572,10 @@ def search_bb_dig_plan(mine):
         node = frontier.pop()
         node_payoff = mine.payoff(node.state)
 
-        # Check if node is obsolete by now (not needed for Prio queue, minimal gain anyways with cache enabled)
-        # optimistic_node = opt_pay(node)
-        # if optimistic_node <= best_payoff:
-        #     continue
-        
         # Store best node found
         if node_payoff >= best_payoff:
             best_node = node
             best_payoff = node_payoff
-
-        # # # Debugging:
-        # print('State:    ', node.state)
-        # print('Best Pay: ', best_payoff)
-        # print('Opt Pay:  ', opt_pay(node))
-        # print('Payoff:   ', mine.payoff(node.state))
-        # print()
 
         for child in node.expand(mine):
             # check that child has not been added to frontier and optimistic payoff is not worse than current payoff
@@ -636,21 +615,44 @@ def find_action_sequence(s0, s1):
     # approach: among all columns for which s0 < s1, pick the column loc
     # with the smallest s0[loc]
     def find_sequence_3d(s0, s1, width):
+        '''
+        Returns the sequence of actions to go from state s0 to state s1 for a 3D np array.
+        
+        Parameters
+        ----------
+        s0 :
+            state 0 formatted as an np array
+        s1 :
+            state 1 formatted as an np array
+        width:
+            size of the y axis, found by checking the length of s0 or s1
+
+        Returns
+        -------
+        Returns the tuple based action sequence required to go from s0 to s1.
+
+        '''
         loc = 0
         output = []
 
         while True:
-            for i in range(width): #loop through each "slice" of the 3d mine
+            for i in range(width): # loop through each "slice" of the 3d mine
                 for location in range(len(s0[0])): 
-                    if s0[i][location] == loc & s0[i][location] < s1[i][location]: #if current position is at the current level, and is less than the final position
-                        output.append((i, location))
-                        s0[i][location] += 1    
+                    if s0[i][location] == loc and s0[i][location] < s1[i][location]: # if current position is at the current level, and is less than the final position
+                        if width > 1: # 3D case
+                            output.append((i, location))
+                            s0[i][location] += 1    
+                            
+                        else: # 2D case
+                            output.append((location,))
+                            s0[i][location] += 1    
             loc += 1
 
             if np.all((s0 == s1)):
                 return output
-            
-    if s0.ndim == 2: #if 3d (Mine.three_dim won't exist here)
-        return tuple(find_sequence_3d(np.array(s0), np.array(s1), len(s0)))
-    else: #if 2d
+
+    three_dim = 3        
+    if s0.ndim == three_dim - 1: # if 3D 
+        return tuple(find_sequence_3d(s0, s1, len(s0)))
+    else: # if 2D
         return tuple(find_sequence_3d(np.array([s0]), np.array([s1]), 1))
