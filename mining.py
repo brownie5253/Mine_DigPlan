@@ -55,9 +55,7 @@ import matplotlib.pyplot as plt
 # This import registers the 3D projection, but is otherwise unused.
 # from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
-import itertools
-
-import functools # @lru_cache(maxsize=32)
+import functools
 
 from numbers import Number
 
@@ -196,10 +194,13 @@ class Mine(search.Problem):
         else:
             self.three_dim = False
 
-        # -1 axis of underground is always z axis
-        self.len_z = self.underground.shape[-1]
         # 0 axis of underground is always x axis
-        self.len_x = self.underground.shape[0]
+        x_axis = 0
+        # -1 axis of underground is always z axis
+        z_axis = -1
+
+        self.len_z = self.underground.shape[z_axis]
+        self.len_x = self.underground.shape[x_axis]
 
         # 3D mine case
         if self.three_dim:
@@ -208,6 +209,7 @@ class Mine(search.Problem):
 
         # 2D mine case            
         else:
+            # 0 axis of underground
             self.len_y = 0
             self.initial = np.zeros(self.len_x, dtype=int)
 
